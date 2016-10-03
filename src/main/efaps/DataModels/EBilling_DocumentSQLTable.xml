@@ -34,7 +34,7 @@
             <column name="MODIFIER"     type="INTEGER"      not-null="true" />
             <column name="MODIFIED"     type="DATETIME"     not-null="true" />
             <foreign name="T_EBILLDOC_FK_COMPANYID"   key="COMPANYID" reference="T_USERABSTRACT(ID)" />
-            <foreign name="T_EBILLDOC_FK_SALESPERS"   key="SALESPERS" reference="T_USERPERSON(ID)" />
+            <foreign name="T_EBILLDOC_FK_DOCID"       key="DOCID"     reference="T_ERPDOC(ID)" />
             <foreign name="T_EBILLDOC_FK_CRTR"        key="CREATOR"   reference="T_USERPERSON(ID)" />
             <foreign name="T_EBILLDOC_FK_MDFR"        key="MODIFIER"  reference="T_USERPERSON(ID)" />
         </database>

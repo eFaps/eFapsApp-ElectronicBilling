@@ -48,9 +48,16 @@
             <sqlcolumn>COMPANYID</sqlcolumn>
         </attribute>
         <attribute>
+            <name>DocumentLinkAbstract</name>
+            <type>Link</type>
+            <typelink>Sales_DocumentAbstract</typelink>
+            <sqltable>EBilling_DocumentSQLTable</sqltable>
+            <sqlcolumn>DOCID</sqlcolumn>
+        </attribute>
+        <attribute>
             <name>StatusAbstract</name>
             <type>Status</type>
-            <typelink>Admin_DataModel_StatusAbstract</typelink>
+            <typelink>EBilling_StatusAbstract</typelink>
             <sqltable>EBilling_DocumentSQLTable</sqltable>
             <sqlcolumn>STATUS</sqlcolumn>
             <trigger event="RANGE_VALUE"
