@@ -33,7 +33,7 @@
         <attribute>
             <name>Status</name>
             <type>Status</type>
-            <typelink>Admin_DataModel_StatusAbstract</typelink>
+            <typelink>EBilling_InvoiceStatus</typelink>
             <sqltable>EBilling_DocumentSQLTable</sqltable>
             <sqlcolumn>STATUS</sqlcolumn>
             <trigger event="RANGE_VALUE"

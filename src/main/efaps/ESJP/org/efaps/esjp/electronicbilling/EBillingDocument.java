@@ -28,8 +28,8 @@ import org.efaps.admin.program.esjp.EFapsUUID;
  */
 @EFapsUUID("31d5d1f6-848c-4847-a099-bdc5c3f02515")
 @EFapsApplication("eFapsApp-ElectronicBilling")
-public abstract class AbstractEBillingDocument
-    extends AbstractEBillingDocument_Base
+public class EBillingDocument
+    extends EBillingDocument_Base
 {
 
 }

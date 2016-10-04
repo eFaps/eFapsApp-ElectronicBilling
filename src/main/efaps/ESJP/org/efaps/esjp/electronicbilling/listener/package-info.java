@@ -14,19 +14,10 @@
  * limitations under the License.
  *
  */
-package org.efaps.esjp.electronicbilling;
-
-import org.efaps.admin.program.esjp.EFapsApplication;
-import org.efaps.admin.program.esjp.EFapsUUID;
 
 /**
- * The Class AbstractEBillingDocument_Base.
+ * Classes related to listener for electronic billing.
  *
  * @author The eFaps Team
  */
-@EFapsUUID("171bd803-81f1-445e-ad79-5b18e35878b6")
-@EFapsApplication("eFapsApp-ElectronicBilling")
-public abstract class AbstractEBillingDocument_Base
-{
-
-}
+package org.efaps.esjp.electronicbilling.listener;
