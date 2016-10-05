@@ -78,7 +78,25 @@ public abstract class EBillingDocument_Base
             }
         }
         for (final IOnDocument listener : Listener.get().<IOnDocument>invoke(IOnDocument.class)) {
-            listener.onCreate(_parameter, instances.toArray(new Instance[instances.size()]));
+            listener.afterCreate(_parameter, instances.toArray(new Instance[instances.size()]));
+        }
+        return new Return();
+    }
+
+    /**
+     * Resend.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return the return
+     * @throws EFapsException on error
+     */
+    public Return resend(final Parameter _parameter)
+        throws EFapsException
+    {
+        final List<Instance> instances = new ArrayList<>();
+        instances.add(_parameter.getInstance());
+        for (final IOnDocument listener : Listener.get().<IOnDocument>invoke(IOnDocument.class)) {
+            listener.afterCreate(_parameter, instances.toArray(new Instance[instances.size()]));
         }
         return new Return();
     }

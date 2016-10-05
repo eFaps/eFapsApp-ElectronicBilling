@@ -46,7 +46,7 @@ public interface IOnDocument
      * @param _instances the instances
      * @throws EFapsException on error
      */
-    void onCreate(final Parameter _parameter,
-                  final Instance... _instances)
+    void afterCreate(final Parameter _parameter,
+                     final Instance... _instances)
         throws EFapsException;
 }
