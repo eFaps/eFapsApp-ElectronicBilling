@@ -16,7 +16,8 @@
 
 -->
 <datamodel-statusgroup xmlns="http://www.efaps.org/xsd"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
     <uuid>94e27244-fe5d-4640-bc32-c6f6d2f94e54</uuid>
     <file-application>eFapsApp-ElectronicBilling</file-application>
     <definition>
@@ -25,6 +26,9 @@
         <parent>EBilling_StatusAbstract</parent>
         <status key="Pending">
             <description>First step for electronic invoices.</description>
+        </status>
+        <status key="Aborted">
+            <description>Possible outcome</description>
         </status>
     </definition>
 </datamodel-statusgroup>
