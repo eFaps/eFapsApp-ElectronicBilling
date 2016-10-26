@@ -37,5 +37,6 @@
         <property name="Target">content</property>
         <property name="TargetShowCheckBoxes">true</property>
         <property name="TargetMode">view</property>
+        <property name="TargetTableType">GridX</property>
     </definition>
 </ui-command>

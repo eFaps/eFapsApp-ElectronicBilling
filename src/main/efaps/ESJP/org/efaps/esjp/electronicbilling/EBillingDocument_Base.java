@@ -19,8 +19,10 @@ package org.efaps.esjp.electronicbilling;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 
 import org.efaps.admin.datamodel.Status;
+import org.efaps.admin.datamodel.Type;
 import org.efaps.admin.event.Parameter;
 import org.efaps.admin.event.Return;
 import org.efaps.admin.program.esjp.EFapsApplication;
@@ -35,12 +37,12 @@ import org.efaps.db.SelectBuilder;
 import org.efaps.esjp.ci.CIContacts;
 import org.efaps.esjp.ci.CIEBilling;
 import org.efaps.esjp.ci.CIERP;
-import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.common.AbstractCommon;
 import org.efaps.esjp.db.InstanceUtils;
 import org.efaps.esjp.electronicbilling.listener.IOnDocument;
 import org.efaps.esjp.electronicbilling.util.ElectronicBilling;
 import org.efaps.util.EFapsException;
+
 
 /**
  * The Class AbstractEBillingDocument_Base.
@@ -64,6 +66,7 @@ public abstract class EBillingDocument_Base
         throws EFapsException
     {
         final Properties props = ElectronicBilling.QUERYBLDR4DOCSCAN.get();
+        final Properties docProps = ElectronicBilling.DOCMAPPING.get();
         final QueryBuilder queryBldr = getQueryBldrFromProperties(_parameter, props);
 
         final QueryBuilder attrQueryBldr = new QueryBuilder(CIEBilling.DocumentAbstract);
@@ -73,12 +76,25 @@ public abstract class EBillingDocument_Base
         query.execute();
         final List<Instance> instances = new ArrayList<>();
         while (query.next()) {
-            if (query.getCurrentValue().getType().isCIType(CISales.Invoice)) {
-                final Insert insert = new Insert(CIEBilling.Invoice);
-                insert.add(CIEBilling.Invoice.InvoiceLink, query.getCurrentValue());
-                insert.add(CIEBilling.Invoice.Status, Status.find(CIEBilling.InvoiceStatus.Pending));
-                insert.executeWithoutAccessCheck();
-                instances.add(insert.getInstance());
+            final String typeName = query.getCurrentValue().getType().getName();
+            final String typeUUID = query.getCurrentValue().getType().getUUID().toString();
+            final String edoc = docProps.getProperty(typeName, docProps.getProperty(typeUUID));
+            if (edoc != null) {
+                final Type eType = isUUID(edoc) ? Type.get(UUID.fromString(edoc)) : Type.get(edoc);
+                final String eTypeName = eType.getName();
+                final String eTypeUUID = eType.getUUID().toString();
+                final String edocStatusKey = docProps.getProperty(eTypeName + ".CreateStatus", docProps.getProperty(
+                                eTypeUUID + ".CreateStatus"));
+                if (edocStatusKey != null) {
+                    final Status status = Status.find(eType.getStatusAttribute().getLink().getUUID(), edocStatusKey);
+                    if (status != null) {
+                        final Insert insert = new Insert(eType);
+                        insert.add(CIEBilling.DocumentAbstract.DocumentLinkAbstract, query.getCurrentValue());
+                        insert.add(CIEBilling.DocumentAbstract.StatusAbstract, status);
+                        insert.executeWithoutAccessCheck();
+                        instances.add(insert.getInstance());
+                    }
+                }
             }
         }
         for (final IOnDocument listener : Listener.get().<IOnDocument>invoke(IOnDocument.class)) {
