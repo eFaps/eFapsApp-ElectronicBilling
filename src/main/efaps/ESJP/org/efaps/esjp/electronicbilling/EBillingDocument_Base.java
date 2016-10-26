@@ -29,11 +29,15 @@ import org.efaps.admin.program.esjp.Listener;
 import org.efaps.db.Insert;
 import org.efaps.db.Instance;
 import org.efaps.db.InstanceQuery;
+import org.efaps.db.PrintQuery;
 import org.efaps.db.QueryBuilder;
+import org.efaps.db.SelectBuilder;
+import org.efaps.esjp.ci.CIContacts;
 import org.efaps.esjp.ci.CIEBilling;
 import org.efaps.esjp.ci.CIERP;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.common.AbstractCommon;
+import org.efaps.esjp.db.InstanceUtils;
 import org.efaps.esjp.electronicbilling.listener.IOnDocument;
 import org.efaps.esjp.electronicbilling.util.ElectronicBilling;
 import org.efaps.util.EFapsException;
@@ -99,5 +103,52 @@ public abstract class EBillingDocument_Base
             listener.afterCreate(_parameter, instances.toArray(new Instance[instances.size()]));
         }
         return new Return();
+    }
+
+    /**
+     * Gets the emails.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @param _contactInstance the contact instance
+     * @return the emails
+     * @throws EFapsException on error
+     */
+    public Return getEmails(final Parameter _parameter)
+        throws EFapsException
+    {
+        getEmails(_parameter, _parameter.getInstance());
+        return new Return();
+    }
+
+    /**
+     * Gets the emails.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @param _contactInstance the contact instance
+     * @return the emails
+     * @throws EFapsException on error
+     */
+    @SuppressWarnings("unchecked")
+    public List<String> getEmails(final Parameter _parameter,
+                                  final Instance _contactInstance)
+        throws EFapsException
+    {
+        final List<String> ret = new ArrayList<>();
+        if (InstanceUtils.isKindOf(_contactInstance, CIContacts.Contact)) {
+            final PrintQuery print = new PrintQuery(_contactInstance);
+            final SelectBuilder selEmails = SelectBuilder.get().clazz(CIContacts.Class)
+                            .attributeset(CIContacts.Class.EmailSet, "attribute[ElectronicBilling]==true")
+                            .attribute("Email");
+            print.addSelect(selEmails);
+            if (print.execute()) {
+                final Object obj = print.getSelect(selEmails);
+                if (obj instanceof List) {
+                    ret.addAll((List<String>) obj);
+                } else {
+                    ret.add((String) obj);
+                }
+            }
+        }
+        return ret;
     }
 }
