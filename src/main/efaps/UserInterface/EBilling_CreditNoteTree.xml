@@ -30,6 +30,9 @@
             <form>EBilling_CreditNoteForm</form>
         </target>
         <type>EBilling_CreditNote</type>
+        <childs>
+            <child>EBilling_DocumentAbstractTree_Protocol</child>
+        </childs>
         <property name="Target">content</property>
         <property name="TargetMode">view</property>
     </definition>

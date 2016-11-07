@@ -30,6 +30,9 @@
             <form>EBilling_InvoiceForm</form>
         </target>
         <type>EBilling_Invoice</type>
+        <childs>
+            <child>EBilling_DocumentAbstractTree_Protocol</child>
+        </childs>
         <property name="Target">content</property>
         <property name="TargetMode">view</property>
     </definition>

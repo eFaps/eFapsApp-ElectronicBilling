@@ -17,23 +17,19 @@
 -->
 <ui-menu xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>545096a1-0656-48e6-84ea-c14a0473caf5</uuid>
+    <uuid>6ba95346-a44b-489a-942a-f316f1a23f9f</uuid>
     <file-application>eFapsApp-ElectronicBilling</file-application>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>EBilling_ReceiptTree</name>
-        <access>
-            <role>EBilling_Admin</role>
-        </access>
+        <name>EBilling_DocumentAbstractTree_Protocol</name>
         <target>
-            <menu>EBilling_ReceiptTree_Menu</menu>
-            <form>EBilling_ReceiptForm</form>
+            <table>EBilling_ProtocolTable</table>
+            <evaluate program="org.efaps.esjp.common.uitable.MultiPrint">
+                <property name="Type">EBilling_ProtocolAbstract</property>
+            </evaluate>
         </target>
-        <type>EBilling_Receipt</type>
-        <childs>
-            <child>EBilling_DocumentAbstractTree_Protocol</child>
-        </childs>
         <property name="Target">content</property>
+        <property name="TargetShowCheckBoxes">true</property>
         <property name="TargetMode">view</property>
     </definition>
 </ui-menu>
