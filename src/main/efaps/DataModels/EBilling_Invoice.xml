@@ -41,5 +41,7 @@
                 program="org.efaps.esjp.admin.datamodel.StatusValue">
             </trigger>
         </attribute>
+        <trigger program="org.efaps.esjp.electronicbilling.EBillingDocument"
+            name="EBilling_Invoice.DELETE_PRE" event="DELETE_PRE" method="deletePreTrigger"/>
     </definition>
 </datamodel-type>

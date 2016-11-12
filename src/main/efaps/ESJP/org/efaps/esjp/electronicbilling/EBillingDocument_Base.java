@@ -28,6 +28,7 @@ import org.efaps.admin.event.Return;
 import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
 import org.efaps.admin.program.esjp.Listener;
+import org.efaps.db.Delete;
 import org.efaps.db.Insert;
 import org.efaps.db.Instance;
 import org.efaps.db.InstanceQuery;
@@ -166,5 +167,25 @@ public abstract class EBillingDocument_Base
             }
         }
         return ret;
+    }
+
+    /**
+     * Gets the emails.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @param _contactInstance the contact instance
+     * @return the emails
+     * @throws EFapsException on error
+     */
+    public Return deletePreTrigger(final Parameter _parameter)
+        throws EFapsException
+    {
+        final Instance docInstance = _parameter.getInstance();
+        final QueryBuilder queryBldr = new QueryBuilder(CIEBilling.ProtocolAbstract);
+        queryBldr.addWhereAttrEqValue(CIEBilling.ProtocolAbstract.DocumentLinkAbstract, docInstance);
+        for (final Instance protInst : queryBldr.getQuery().execute()) {
+            new Delete(protInst).execute();
+        }
+        return new Return();
     }
 }
