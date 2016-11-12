@@ -26,6 +26,15 @@
         <status key="Pending">
             <description>First step for electronic invoices.</description>
         </status>
+        <status key="Issued">
+            <description>Second Step, meaning that the provider did recieve it with success.</description>
+        </status>
+        <status key="Erroneous">
+            <description>Second Step, meaning that the provider did recieve it with success.</description>
+        </status>
+        <status key="Successful">
+            <description>The process was concluded successfully.</description>
+        </status>
         <status key="Aborted">
             <description>Possible outcome</description>
         </status>

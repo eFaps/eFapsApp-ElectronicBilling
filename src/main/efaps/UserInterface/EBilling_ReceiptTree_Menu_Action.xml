@@ -23,6 +23,7 @@
         <version-expression>(version==latest)</version-expression>
         <name>EBilling_ReceiptTree_Menu_Action</name>
         <childs>
+            <child>EBilling_ReceiptTree_Menu_Action_Resend</child>
             <child>ERP_DocumentAbstractTree_Action_EditStatus</child>
         </childs>
     </definition>
