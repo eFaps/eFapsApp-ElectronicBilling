@@ -26,6 +26,7 @@
             <table>EBilling_ProtocolTable</table>
             <evaluate program="org.efaps.esjp.common.uitable.MultiPrint">
                 <property name="Type">EBilling_ProtocolAbstract</property>
+                <property name="LinkFrom">DocumentLinkAbstract</property>
             </evaluate>
         </target>
         <property name="Target">content</property>

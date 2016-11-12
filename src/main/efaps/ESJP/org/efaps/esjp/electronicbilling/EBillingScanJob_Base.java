@@ -16,14 +16,11 @@
  */
 package org.efaps.esjp.electronicbilling;
 
-import org.efaps.admin.event.Parameter;
 import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
 import org.efaps.admin.user.Company;
-import org.efaps.ci.CIAdminUser;
 import org.efaps.db.Context;
-import org.efaps.db.InstanceQuery;
-import org.efaps.db.QueryBuilder;
+import org.efaps.esjp.common.parameter.ParameterUtil;
 import org.efaps.util.EFapsException;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -41,6 +38,7 @@ import org.slf4j.LoggerFactory;
 public abstract class EBillingScanJob_Base
     implements Job
 {
+
     /**
      * Logging instance used in this class.
      */
@@ -50,16 +48,12 @@ public abstract class EBillingScanJob_Base
     public void execute(final JobExecutionContext _context)
         throws JobExecutionException
     {
-
         try {
-            final QueryBuilder queryBldr = new QueryBuilder(CIAdminUser.Company);
-            final InstanceQuery query = queryBldr.getQuery();
-            query.executeWithoutAccessCheck();
-            while (query.next()) {
-                final Company company = Company.get(query.getCurrentValue().getId());
+
+            for (final Long companyId : Context.getThreadContext().getPerson().getCompanies()) {
+                final Company company = Company.get(companyId);
                 Context.getThreadContext().setCompany(company);
-                final Parameter parameter = new Parameter();
-                new EBillingDocument().scan4Documents(parameter);
+                new EBillingDocument().scan4Documents(ParameterUtil.instance());
             }
             // remove the company to be sure
             Context.getThreadContext().setCompany(null);
