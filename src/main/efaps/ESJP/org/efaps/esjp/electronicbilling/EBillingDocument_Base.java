@@ -151,7 +151,7 @@ public abstract class EBillingDocument_Base
         throws EFapsException
     {
         final List<String> ret = new ArrayList<>();
-        if (InstanceUtils.isKindOf(_contactInstance, CIContacts.Contact)) {
+        if (ElectronicBilling.ACTIVATEMAIL.get() && InstanceUtils.isKindOf(_contactInstance, CIContacts.Contact)) {
             final PrintQuery print = new PrintQuery(_contactInstance);
             final SelectBuilder selEmails = SelectBuilder.get().clazz(CIContacts.Class)
                             .attributeset(CIContacts.Class.EmailSet, "attribute[ElectronicBilling]==true")

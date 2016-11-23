@@ -7,6 +7,7 @@ import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
 import org.efaps.api.annotation.EFapsSysConfAttribute;
 import org.efaps.api.annotation.EFapsSystemConfiguration;
+import org.efaps.esjp.admin.common.systemconfiguration.BooleanSysConfAttribute;
 import org.efaps.esjp.admin.common.systemconfiguration.PropertiesSysConfAttribute;
 import org.efaps.esjp.ci.CIEBilling;
 import org.efaps.esjp.ci.CISales;
@@ -74,6 +75,14 @@ public final class ElectronicBilling
                     .addDefaultValue("Status07", CISales.ReminderStatus.Open.key)
                     .addDefaultValue("StatusGroup08", CISales.ReminderStatus.getType().getName())
                     .addDefaultValue("Status08", CISales.ReminderStatus.Paid.key);
+
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute ACTIVATEMAIL = new BooleanSysConfAttribute()
+                    .sysConfUUID(SYSCONFUUID)
+                    .key(BASE + "ActivateMailing")
+                    .description("Activate the evaluation for mails.")
+                    .defaultValue(false);
 
     /**
      * @return the SystemConfigruation for Sales
