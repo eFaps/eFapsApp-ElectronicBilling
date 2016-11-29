@@ -9,6 +9,7 @@ import org.efaps.api.annotation.EFapsSysConfAttribute;
 import org.efaps.api.annotation.EFapsSystemConfiguration;
 import org.efaps.esjp.admin.common.systemconfiguration.BooleanSysConfAttribute;
 import org.efaps.esjp.admin.common.systemconfiguration.PropertiesSysConfAttribute;
+import org.efaps.esjp.admin.common.systemconfiguration.StringSysConfAttribute;
 import org.efaps.esjp.ci.CIEBilling;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.util.cache.CacheReloadException;
@@ -83,6 +84,70 @@ public final class ElectronicBilling
                     .key(BASE + "ActivateMailing")
                     .description("Activate the evaluation for mails.")
                     .defaultValue(false);
+
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute INVOICE_CREATEONSTATUS = new StringSysConfAttribute()
+                    .sysConfUUID(SYSCONFUUID)
+                    .key(BASE + "Invoice.CreateOnStatusChange")
+                    .description("Activate the mechanism to create the electronic billing document on statsu change")
+                    .defaultValue(CISales.InvoiceStatus.Open.key);
+
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute INVOICE_ACTIVE = new BooleanSysConfAttribute()
+                    .sysConfUUID(SYSCONFUUID)
+                    .key(BASE + "Invoice.Activate")
+                    .description("Activate Invoice")
+                    .defaultValue(true);
+
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute RECEIPT_CREATEONSTATUS = new StringSysConfAttribute()
+                    .sysConfUUID(SYSCONFUUID)
+                    .key(BASE + "Receipt.CreateOnStatusChange")
+                    .description("Activate the mechanism to create the electronic billing document on statsu change")
+                    .defaultValue(CISales.ReceiptStatus.Open.key);
+
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute RECEIPT_ACTIVE = new BooleanSysConfAttribute()
+                    .sysConfUUID(SYSCONFUUID)
+                    .key(BASE + "Receipt.Activate")
+                    .description("Activate Receipt")
+                    .defaultValue(true);
+
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute REMINDER_CREATEONSTATUS = new StringSysConfAttribute()
+                    .sysConfUUID(SYSCONFUUID)
+                    .key(BASE + "Reminder.CreateOnStatusChange")
+                    .description("Activate the mechanism to create the electronic billing document on statsu change")
+                    .defaultValue(CISales.ReminderStatus.Open.key);
+
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute REMINDER_ACTIVE = new BooleanSysConfAttribute()
+                    .sysConfUUID(SYSCONFUUID)
+                    .key(BASE + "Reminder.Activate")
+                    .description("Activate Reminder")
+                    .defaultValue(true);
+
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute CREDITNOTE_CREATEONSTATUS = new StringSysConfAttribute()
+                    .sysConfUUID(SYSCONFUUID)
+                    .key(BASE + "CreditNote.CreateOnStatusChange")
+                    .description("Activate the mechanism to create the electronic billing document on statsu change")
+                    .defaultValue(CISales.CreditNoteStatus.Open.key);
+
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute CREDITNOTE_ACTIVE = new BooleanSysConfAttribute()
+                    .sysConfUUID(SYSCONFUUID)
+                    .key(BASE + "CreditNote.Activate")
+                    .description("Activate CreditNote")
+                    .defaultValue(true);
 
     /**
      * @return the SystemConfigruation for Sales

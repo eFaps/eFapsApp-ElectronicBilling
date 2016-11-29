@@ -24,7 +24,7 @@
         <name>EBilling_Reminder</name>
         <parent>EBilling_DocumentAbstract</parent>
         <attribute>
-            <name>InvoiceLink</name>
+            <name>ReminderLink</name>
             <type>Link</type>
             <typelink>Sales_Invoice</typelink>
             <sqltable>EBilling_DocumentSQLTable</sqltable>

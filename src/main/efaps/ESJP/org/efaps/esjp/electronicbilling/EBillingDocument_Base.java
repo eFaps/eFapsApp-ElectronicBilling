@@ -67,7 +67,7 @@ public abstract class EBillingDocument_Base
         throws EFapsException
     {
         final Properties props = ElectronicBilling.QUERYBLDR4DOCSCAN.get();
-        final Properties docProps = ElectronicBilling.DOCMAPPING.get();
+
         final QueryBuilder queryBldr = getQueryBldrFromProperties(_parameter, props);
 
         final QueryBuilder attrQueryBldr = new QueryBuilder(CIEBilling.DocumentAbstract);
@@ -75,12 +75,41 @@ public abstract class EBillingDocument_Base
                         CIEBilling.DocumentAbstract.DocumentLinkAbstract));
         final InstanceQuery query = queryBldr.getQuery();
         query.execute();
+
         final List<Instance> instances = new ArrayList<>();
         while (query.next()) {
-            final String typeName = query.getCurrentValue().getType().getName();
-            final String typeUUID = query.getCurrentValue().getType().getUUID().toString();
-            final String edoc = docProps.getProperty(typeName, docProps.getProperty(typeUUID));
-            if (edoc != null) {
+            final Instance inst = createDocument(_parameter, query.getCurrentValue());
+            if (InstanceUtils.isValid(inst)) {
+                instances.add(inst);
+            }
+        }
+        for (final IOnDocument listener : Listener.get().<IOnDocument>invoke(IOnDocument.class)) {
+            listener.afterCreate(_parameter, instances.toArray(new Instance[instances.size()]));
+        }
+        return new Return();
+    }
+
+    /**
+     * Creates the document.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @param _docInst the doc inst
+     * @return the instance
+     * @throws EFapsException on error
+     */
+    public Instance createDocument(final Parameter _parameter,
+                                   final Instance _docInst)
+        throws EFapsException
+    {
+        Instance ret = null;
+        final Properties docProps = ElectronicBilling.DOCMAPPING.get();
+        final String typeName = _docInst.getType().getName();
+        final String typeUUID = _docInst.getType().getUUID().toString();
+        final String edoc = docProps.getProperty(typeName, docProps.getProperty(typeUUID));
+        if (edoc != null) {
+            final QueryBuilder queryBldr = new QueryBuilder(CIEBilling.DocumentAbstract);
+            queryBldr.addWhereAttrEqValue(CIEBilling.DocumentAbstract.DocumentLinkAbstract, _docInst);
+            if (queryBldr.getQuery().executeWithoutAccessCheck().isEmpty()) {
                 final Type eType = isUUID(edoc) ? Type.get(UUID.fromString(edoc)) : Type.get(edoc);
                 final String eTypeName = eType.getName();
                 final String eTypeUUID = eType.getUUID().toString();
@@ -90,18 +119,15 @@ public abstract class EBillingDocument_Base
                     final Status status = Status.find(eType.getStatusAttribute().getLink().getUUID(), edocStatusKey);
                     if (status != null) {
                         final Insert insert = new Insert(eType);
-                        insert.add(CIEBilling.DocumentAbstract.DocumentLinkAbstract, query.getCurrentValue());
+                        insert.add(CIEBilling.DocumentAbstract.DocumentLinkAbstract, _docInst);
                         insert.add(CIEBilling.DocumentAbstract.StatusAbstract, status);
                         insert.executeWithoutAccessCheck();
-                        instances.add(insert.getInstance());
+                        ret = insert.getInstance();
                     }
                 }
             }
         }
-        for (final IOnDocument listener : Listener.get().<IOnDocument>invoke(IOnDocument.class)) {
-            listener.afterCreate(_parameter, instances.toArray(new Instance[instances.size()]));
-        }
-        return new Return();
+        return ret;
     }
 
     /**
