@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
 
  Copyright 2003 - 2016 The eFaps Team
 
@@ -17,66 +18,67 @@
 -->
 <datamodel-type xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>e6938c18-d882-48e3-9ab6-433a389f5ff9</uuid>
+    <uuid>79c95638-e1dd-4a3a-b943-414a98d55855</uuid>
     <file-application>eFapsApp-ElectronicBilling</file-application>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>EBilling_ProtocolAbstract</name>
+        <name>EBilling_FileAbstract</name>
         <purpose abstract="true" />
         <attribute>
             <name>Type</name>
             <type>Type</type>
-            <sqltable>EBilling_ProtocolSQLTable</sqltable>
+            <sqltable>EBilling_FileSQLTable</sqltable>
             <sqlcolumn>TYPEID</sqlcolumn>
         </attribute>
         <attribute>
             <name>OID</name>
             <type>OID</type>
-            <sqltable>EBilling_ProtocolSQLTable</sqltable>
+            <sqltable>EBilling_FileSQLTable</sqltable>
             <sqlcolumn>TYPEID,ID</sqlcolumn>
         </attribute>
         <attribute>
             <name>ID</name>
             <type>Long</type>
-            <sqltable>EBilling_ProtocolSQLTable</sqltable>
+            <sqltable>EBilling_FileSQLTable</sqltable>
             <sqlcolumn>ID</sqlcolumn>
         </attribute>
         <attribute>
             <name>Company</name>
             <type>CompanyLink</type>
-            <sqltable>EBilling_ProtocolSQLTable</sqltable>
+            <sqltable>EBilling_FileSQLTable</sqltable>
             <sqlcolumn>COMPANYID</sqlcolumn>
         </attribute>
         <attribute>
             <name>DocumentLinkAbstract</name>
             <type>Link</type>
             <typelink>EBilling_DocumentAbstract</typelink>
-            <sqltable>EBilling_ProtocolSQLTable</sqltable>
+            <sqltable>EBilling_FileSQLTable</sqltable>
             <sqlcolumn>DOCID</sqlcolumn>
         </attribute>
         <attribute>
             <name>Creator</name>
             <type>CreatorLink</type>
-            <sqltable>EBilling_ProtocolSQLTable</sqltable>
+            <sqltable>EBilling_FileSQLTable</sqltable>
             <sqlcolumn>CREATOR</sqlcolumn>
         </attribute>
         <attribute>
             <name>Created</name>
             <type>Created</type>
-            <sqltable>EBilling_ProtocolSQLTable</sqltable>
+            <sqltable>EBilling_FileSQLTable</sqltable>
             <sqlcolumn>CREATED</sqlcolumn>
         </attribute>
         <attribute>
             <name>Modifier</name>
             <type>ModifierLink</type>
-            <sqltable>EBilling_ProtocolSQLTable</sqltable>
+            <sqltable>EBilling_FileSQLTable</sqltable>
             <sqlcolumn>MODIFIER</sqlcolumn>
         </attribute>
         <attribute>
             <name>Modified</name>
             <type>Modified</type>
-            <sqltable>EBilling_ProtocolSQLTable</sqltable>
+            <sqltable>EBilling_FileSQLTable</sqltable>
             <sqlcolumn>MODIFIED</sqlcolumn>
         </attribute>
+        <store name="EBilling_VFSStore" />
     </definition>
 </datamodel-type>

@@ -17,24 +17,20 @@
 -->
 <ui-menu xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>4cd88992-9667-4e34-92cb-39c43395365f</uuid>
+    <uuid>20bfa37b-d1fb-4cee-af19-70cbca43c678</uuid>
     <file-application>eFapsApp-ElectronicBilling</file-application>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>EBilling_ReminderTree</name>
-        <access>
-            <role>EBilling_Admin</role>
-        </access>
+        <name>EBilling_DocumentAbstractTree_File</name>
         <target>
-            <menu>EBilling_ReminderTree_Menu</menu>
-            <form>EBilling_ReminderForm</form>
+            <table>EBilling_FileTable</table>
+            <evaluate program="org.efaps.esjp.common.uitable.MultiPrint">
+                <property name="Type">EBilling_FileAbstract</property>
+                <property name="LinkFrom">DocumentLinkAbstract</property>
+            </evaluate>
         </target>
-        <type>EBilling_Reminder</type>
-        <childs>
-            <child>EBilling_DocumentAbstractTree_Protocol</child>
-            <child>EBilling_DocumentAbstractTree_File</child>
-        </childs>
         <property name="Target">content</property>
+        <property name="TargetShowCheckBoxes">true</property>
         <property name="TargetMode">view</property>
     </definition>
 </ui-menu>

@@ -32,6 +32,7 @@
         <type>EBilling_CreditNote</type>
         <childs>
             <child>EBilling_DocumentAbstractTree_Protocol</child>
+            <child>EBilling_DocumentAbstractTree_File</child>
         </childs>
         <property name="Target">content</property>
         <property name="TargetMode">view</property>
