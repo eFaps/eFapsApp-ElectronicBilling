@@ -28,6 +28,7 @@ import org.efaps.admin.event.Return;
 import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
 import org.efaps.admin.program.esjp.Listener;
+import org.efaps.db.Context;
 import org.efaps.db.Delete;
 import org.efaps.db.Insert;
 import org.efaps.db.Instance;
@@ -38,10 +39,17 @@ import org.efaps.db.SelectBuilder;
 import org.efaps.esjp.ci.CIContacts;
 import org.efaps.esjp.ci.CIEBilling;
 import org.efaps.esjp.ci.CIERP;
+import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.common.AbstractCommon;
+import org.efaps.esjp.common.parameter.ParameterUtil;
 import org.efaps.esjp.db.InstanceUtils;
 import org.efaps.esjp.electronicbilling.listener.IOnDocument;
 import org.efaps.esjp.electronicbilling.util.ElectronicBilling;
+import org.efaps.esjp.sales.document.CreditNote;
+import org.efaps.esjp.sales.document.Invoice;
+import org.efaps.esjp.sales.document.Receipt;
+import org.efaps.esjp.sales.document.Reminder;
+import org.efaps.esjp.sales.util.Sales;
 import org.efaps.util.EFapsException;
 
 
@@ -68,7 +76,7 @@ public abstract class EBillingDocument_Base
     {
         final Properties props = ElectronicBilling.QUERYBLDR4DOCSCAN.get();
 
-        final QueryBuilder queryBldr = getQueryBldrFromProperties(_parameter, props);
+        final QueryBuilder queryBldr = this.getQueryBldrFromProperties(_parameter, props);
 
         final QueryBuilder attrQueryBldr = new QueryBuilder(CIEBilling.DocumentAbstract);
         queryBldr.addWhereAttrNotInQuery(CIERP.DocumentAbstract.ID, attrQueryBldr.getAttributeQuery(
@@ -77,7 +85,9 @@ public abstract class EBillingDocument_Base
         query.execute();
 
         final List<Instance> instances = new ArrayList<>();
+        final List<Instance> sdocInsts = new ArrayList<>();
         while (query.next()) {
+            sdocInsts.add(query.getCurrentValue());
             final Instance inst = createDocument(_parameter, query.getCurrentValue());
             if (InstanceUtils.isValid(inst)) {
                 instances.add(inst);
@@ -85,6 +95,10 @@ public abstract class EBillingDocument_Base
         }
         for (final IOnDocument listener : Listener.get().<IOnDocument>invoke(IOnDocument.class)) {
             listener.afterCreate(_parameter, instances.toArray(new Instance[instances.size()]));
+        }
+        Context.save();
+        for(final Instance docInst : sdocInsts) {
+            createReport4Document(_parameter, docInst);
         }
         return new Return();
     }
@@ -102,32 +116,87 @@ public abstract class EBillingDocument_Base
         throws EFapsException
     {
         Instance ret = null;
-        final Properties docProps = ElectronicBilling.DOCMAPPING.get();
-        final String typeName = _docInst.getType().getName();
-        final String typeUUID = _docInst.getType().getUUID().toString();
-        final String edoc = docProps.getProperty(typeName, docProps.getProperty(typeUUID));
-        if (edoc != null) {
-            final QueryBuilder queryBldr = new QueryBuilder(CIEBilling.DocumentAbstract);
-            queryBldr.addWhereAttrEqValue(CIEBilling.DocumentAbstract.DocumentLinkAbstract, _docInst);
-            if (queryBldr.getQuery().executeWithoutAccessCheck().isEmpty()) {
-                final Type eType = isUUID(edoc) ? Type.get(UUID.fromString(edoc)) : Type.get(edoc);
-                final String eTypeName = eType.getName();
-                final String eTypeUUID = eType.getUUID().toString();
-                final String edocStatusKey = docProps.getProperty(eTypeName + ".CreateStatus", docProps.getProperty(
-                                eTypeUUID + ".CreateStatus"));
-                if (edocStatusKey != null) {
-                    final Status status = Status.find(eType.getStatusAttribute().getLink().getUUID(), edocStatusKey);
-                    if (status != null) {
-                        final Insert insert = new Insert(eType);
-                        insert.add(CIEBilling.DocumentAbstract.DocumentLinkAbstract, _docInst);
-                        insert.add(CIEBilling.DocumentAbstract.StatusAbstract, status);
-                        insert.executeWithoutAccessCheck();
-                        ret = insert.getInstance();
+        if (InstanceUtils.isType(_docInst, CISales.CreditNote) && ElectronicBilling.CREDITNOTE_ACTIVE.get()
+                        || InstanceUtils.isType(_docInst, CISales.Invoice) && ElectronicBilling.INVOICE_ACTIVE.get()
+                        || InstanceUtils.isType(_docInst, CISales.Receipt) && ElectronicBilling.RECEIPT_ACTIVE.get()
+                        || InstanceUtils.isType(_docInst, CISales.Reminder) && ElectronicBilling.REMINDER_ACTIVE
+                                        .get()) {
+            final Properties docProps = ElectronicBilling.DOCMAPPING.get();
+            final String typeName = _docInst.getType().getName();
+            final String typeUUID = _docInst.getType().getUUID().toString();
+            final String edoc = docProps.getProperty(typeName, docProps.getProperty(typeUUID));
+            if (edoc != null) {
+                final QueryBuilder queryBldr = new QueryBuilder(CIEBilling.DocumentAbstract);
+                queryBldr.addWhereAttrEqValue(CIEBilling.DocumentAbstract.DocumentLinkAbstract, _docInst);
+                if (queryBldr.getQuery().executeWithoutAccessCheck().isEmpty()) {
+                    final Type eType = isUUID(edoc) ? Type.get(UUID.fromString(edoc)) : Type.get(edoc);
+                    final String eTypeName = eType.getName();
+                    final String eTypeUUID = eType.getUUID().toString();
+                    final String edocStatusKey = docProps.getProperty(eTypeName + ".CreateStatus", docProps.getProperty(
+                                    eTypeUUID + ".CreateStatus"));
+                    if (edocStatusKey != null) {
+                        final Status status = Status.find(eType.getStatusAttribute().getLink().getUUID(),
+                                        edocStatusKey);
+                        if (status != null) {
+                            final Insert insert = new Insert(eType);
+                            insert.add(CIEBilling.DocumentAbstract.DocumentLinkAbstract, _docInst);
+                            insert.add(CIEBilling.DocumentAbstract.StatusAbstract, status);
+                            insert.executeWithoutAccessCheck();
+                            ret = insert.getInstance();
+                        }
                     }
                 }
             }
         }
         return ret;
+    }
+
+    /**
+     * Creates the report for document.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @param _salesDocInst the sales doc inst
+     * @throws EFapsException on error
+     */
+    public void createReport4Document(final Parameter _parameter,
+                                      final Instance _salesDocInst)
+        throws EFapsException
+    {
+        if (InstanceUtils.isType(_salesDocInst, CISales.Invoice) && ElectronicBilling.INVOICE_CREATEREPORT.get()) {
+            final Parameter parameter = ParameterUtil.clone(_parameter);
+            ParameterUtil.setProperty(parameter, "JasperConfig", Sales.getSysConfig().getUUID().toString());
+            ParameterUtil.setProperty(parameter, "JasperConfigReport", Sales.INVOICE_JASPERREPORT.getKey());
+            ParameterUtil.setProperty(parameter, "JasperConfigMime", Sales.INVOICE_MIME.getKey());
+            ParameterUtil.setProperty(parameter, "Checkin", "true");
+            new Invoice().createReport(parameter);
+        } else if (InstanceUtils.isType(_salesDocInst, CISales.Receipt) && ElectronicBilling.RECEIPT_CREATEREPORT
+                        .get()) {
+
+            final Parameter parameter = ParameterUtil.clone(_parameter);
+            ParameterUtil.setProperty(parameter, "JasperConfig", Sales.getSysConfig().getUUID().toString());
+            ParameterUtil.setProperty(parameter, "JasperConfigReport", Sales.RECEIPT_JASPERREPORT.getKey());
+            ParameterUtil.setProperty(parameter, "JasperConfigMime", Sales.RECEIPT_MIME.getKey());
+            ParameterUtil.setProperty(parameter, "Checkin", "true");
+            new Receipt().createReport(parameter);
+        } else if (InstanceUtils.isType(_salesDocInst, CISales.Reminder) && ElectronicBilling.REMINDER_CREATEREPORT
+                        .get()) {
+
+            final Parameter parameter = ParameterUtil.clone(_parameter);
+            ParameterUtil.setProperty(parameter, "JasperConfig", Sales.getSysConfig().getUUID().toString());
+            ParameterUtil.setProperty(parameter, "JasperConfigReport", Sales.REMINDER_JASPERREPORT.getKey());
+            ParameterUtil.setProperty(parameter, "JasperConfigMime", Sales.REMINDER_MIME.getKey());
+            ParameterUtil.setProperty(parameter, "Checkin", "true");
+            new Reminder().createReport(parameter);
+        } else if (InstanceUtils.isType(_salesDocInst, CISales.CreditNote) && ElectronicBilling.CREDITNOTE_CREATEREPORT
+                        .get()) {
+
+            final Parameter parameter = ParameterUtil.clone(_parameter);
+            ParameterUtil.setProperty(parameter, "JasperConfig", Sales.getSysConfig().getUUID().toString());
+            ParameterUtil.setProperty(parameter, "JasperConfigReport", Sales.CREDITNOTE_JASPERREPORT.getKey());
+            ParameterUtil.setProperty(parameter, "JasperConfigMime", Sales.CREDITNOTE_MIME.getKey());
+            ParameterUtil.setProperty(parameter, "Checkin", "true");
+            new CreditNote().createReport(parameter);
+        }
     }
 
     /**
@@ -159,7 +228,7 @@ public abstract class EBillingDocument_Base
     public Return getEmails(final Parameter _parameter)
         throws EFapsException
     {
-        getEmails(_parameter, _parameter.getInstance());
+        this.getEmails(_parameter, _parameter.getInstance());
         return new Return();
     }
 
@@ -210,6 +279,11 @@ public abstract class EBillingDocument_Base
         final QueryBuilder queryBldr = new QueryBuilder(CIEBilling.ProtocolAbstract);
         queryBldr.addWhereAttrEqValue(CIEBilling.ProtocolAbstract.DocumentLinkAbstract, docInstance);
         for (final Instance protInst : queryBldr.getQuery().execute()) {
+            new Delete(protInst).execute();
+        }
+        final QueryBuilder queryBldr2 = new QueryBuilder(CIEBilling.FileAbstract);
+        queryBldr2.addWhereAttrEqValue(CIEBilling.FileAbstract.DocumentLinkAbstract, docInstance);
+        for (final Instance protInst : queryBldr2.getQuery().execute()) {
             new Delete(protInst).execute();
         }
         return new Return();

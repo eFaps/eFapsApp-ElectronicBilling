@@ -34,8 +34,8 @@ public final class ElectronicBilling
     /** See description. */
     @EFapsSysConfAttribute
     public static final PropertiesSysConfAttribute DOCMAPPING = new PropertiesSysConfAttribute()
-                    .sysConfUUID(SYSCONFUUID)
-                    .key(BASE + "DocumentMapping")
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "DocumentMapping")
                     .description("Config for Document to EBilling Document relation")
                     .addDefaultValue(CISales.Invoice.getType().getName(), CIEBilling.Invoice.getType().getName())
                     .addDefaultValue(CIEBilling.Invoice.getType().getName() + ".CreateStatus",
@@ -53,8 +53,8 @@ public final class ElectronicBilling
     /** See description. */
     @EFapsSysConfAttribute
     public static final PropertiesSysConfAttribute QUERYBLDR4DOCSCAN = new PropertiesSysConfAttribute()
-                    .sysConfUUID(SYSCONFUUID)
-                    .key(BASE + "QueryBldr4DocumentScanner")
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "QueryBldr4DocumentScanner")
                     .description("QueryBuilder for Include Scanner")
                     .addDefaultValue("Type01", CISales.Invoice.getType().getName())
                     .addDefaultValue("StatusGroup01", CISales.InvoiceStatus.getType().getName())
@@ -80,73 +80,105 @@ public final class ElectronicBilling
     /** See description. */
     @EFapsSysConfAttribute
     public static final BooleanSysConfAttribute ACTIVATEMAIL = new BooleanSysConfAttribute()
-                    .sysConfUUID(SYSCONFUUID)
-                    .key(BASE + "ActivateMailing")
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "ActivateMailing")
                     .description("Activate the evaluation for mails.")
                     .defaultValue(false);
 
     /** See description. */
     @EFapsSysConfAttribute
     public static final StringSysConfAttribute INVOICE_CREATEONSTATUS = new StringSysConfAttribute()
-                    .sysConfUUID(SYSCONFUUID)
-                    .key(BASE + "Invoice.CreateOnStatusChange")
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Invoice.CreateOnStatusChange")
                     .description("Activate the mechanism to create the electronic billing document on statsu change")
                     .defaultValue(CISales.InvoiceStatus.Open.key);
 
     /** See description. */
     @EFapsSysConfAttribute
     public static final BooleanSysConfAttribute INVOICE_ACTIVE = new BooleanSysConfAttribute()
-                    .sysConfUUID(SYSCONFUUID)
-                    .key(BASE + "Invoice.Activate")
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Invoice.Activate")
                     .description("Activate Invoice")
                     .defaultValue(true);
 
     /** See description. */
     @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute INVOICE_CREATEREPORT= new BooleanSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Invoice.CreateReport")
+                    .description("Activate the creation of the Report for Invoice")
+                    .defaultValue(true);
+
+    /** See description. */
+    @EFapsSysConfAttribute
     public static final StringSysConfAttribute RECEIPT_CREATEONSTATUS = new StringSysConfAttribute()
-                    .sysConfUUID(SYSCONFUUID)
-                    .key(BASE + "Receipt.CreateOnStatusChange")
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Receipt.CreateOnStatusChange")
                     .description("Activate the mechanism to create the electronic billing document on statsu change")
                     .defaultValue(CISales.ReceiptStatus.Open.key);
 
     /** See description. */
     @EFapsSysConfAttribute
     public static final BooleanSysConfAttribute RECEIPT_ACTIVE = new BooleanSysConfAttribute()
-                    .sysConfUUID(SYSCONFUUID)
-                    .key(BASE + "Receipt.Activate")
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Receipt.Activate")
                     .description("Activate Receipt")
                     .defaultValue(true);
 
     /** See description. */
     @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute RECEIPT_CREATEREPORT= new BooleanSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Receipt.CreateReport")
+                    .description("Activate the creation of the Report for Receipt")
+                    .defaultValue(true);
+
+    /** See description. */
+    @EFapsSysConfAttribute
     public static final StringSysConfAttribute REMINDER_CREATEONSTATUS = new StringSysConfAttribute()
-                    .sysConfUUID(SYSCONFUUID)
-                    .key(BASE + "Reminder.CreateOnStatusChange")
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Reminder.CreateOnStatusChange")
                     .description("Activate the mechanism to create the electronic billing document on statsu change")
                     .defaultValue(CISales.ReminderStatus.Open.key);
 
     /** See description. */
     @EFapsSysConfAttribute
     public static final BooleanSysConfAttribute REMINDER_ACTIVE = new BooleanSysConfAttribute()
-                    .sysConfUUID(SYSCONFUUID)
-                    .key(BASE + "Reminder.Activate")
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Reminder.Activate")
                     .description("Activate Reminder")
                     .defaultValue(true);
 
     /** See description. */
     @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute REMINDER_CREATEREPORT= new BooleanSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Reminder.CreateReport")
+                    .description("Activate the creation of the Report for Reminder")
+                    .defaultValue(true);
+
+    /** See description. */
+    @EFapsSysConfAttribute
     public static final StringSysConfAttribute CREDITNOTE_CREATEONSTATUS = new StringSysConfAttribute()
-                    .sysConfUUID(SYSCONFUUID)
-                    .key(BASE + "CreditNote.CreateOnStatusChange")
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "CreditNote.CreateOnStatusChange")
                     .description("Activate the mechanism to create the electronic billing document on statsu change")
                     .defaultValue(CISales.CreditNoteStatus.Open.key);
 
     /** See description. */
     @EFapsSysConfAttribute
     public static final BooleanSysConfAttribute CREDITNOTE_ACTIVE = new BooleanSysConfAttribute()
-                    .sysConfUUID(SYSCONFUUID)
-                    .key(BASE + "CreditNote.Activate")
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "CreditNote.Activate")
                     .description("Activate CreditNote")
+                    .defaultValue(true);
+
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute CREDITNOTE_CREATEREPORT= new BooleanSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "CreditNote.CreateReport")
+                    .description("Activate the creation of the Report for CreditNote")
                     .defaultValue(true);
 
     /**
@@ -156,6 +188,6 @@ public final class ElectronicBilling
     public static SystemConfiguration getSysConfig()
         throws CacheReloadException
     {
-        return SystemConfiguration.get(SYSCONFUUID);
+        return SystemConfiguration.get(ElectronicBilling.SYSCONFUUID);
     }
 }
