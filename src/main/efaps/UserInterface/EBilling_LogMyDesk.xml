@@ -15,22 +15,28 @@
  limitations under the License.
 
 -->
-<ui-table xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>eff9e59e-916f-4c2a-97ba-9dadc7bedcb7</uuid>
+    <uuid>98d6159a-f473-4e94-9f33-a6be938c1a85</uuid>
     <file-application>eFapsApp-ElectronicBilling</file-application>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>EBilling_ProtocolTable</name>
-        <field name="type">
-            <property name="Select">type.label</property>
-            <property name="Label">EBilling_ProtocolAbstract/Type.Label</property>
-            <property name="UIProvider">org.efaps.admin.datamodel.ui.StringUI</property>
-            <property name="HRef">TREE</property>
-        </field>
-        <field name="created">
-            <property name="Attribute">Created</property>
-            <property name="Label">EBilling_ProtocolAbstract/Created.Label</property>
-        </field>
+        <name>EBilling_LogMyDesk</name>
+        <access>
+            <role>EBilling_Admin</role>
+        </access>
+        <target>
+            <table>EBilling_LogTable</table>
+            <evaluate program="org.efaps.esjp.common.uitable.MultiPrint">
+                <property name="Type">EBilling_Log</property>
+            </evaluate>
+        </target>
+        <parents>
+            <parent>Sales_MyDesk</parent>
+        </parents>
+        <property name="Target">content</property>
+        <property name="TargetShowCheckBoxes">true</property>
+        <property name="TargetMode">view</property>
+        <property name="TargetTableType">GridX</property>
     </definition>
-</ui-table>
+</ui-command>

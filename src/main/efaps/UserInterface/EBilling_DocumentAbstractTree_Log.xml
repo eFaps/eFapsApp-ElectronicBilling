@@ -21,11 +21,11 @@
     <file-application>eFapsApp-ElectronicBilling</file-application>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>EBilling_DocumentAbstractTree_Protocol</name>
+        <name>EBilling_DocumentAbstractTree_Log</name>
         <target>
-            <table>EBilling_ProtocolTable</table>
+            <table>EBilling_LogTable</table>
             <evaluate program="org.efaps.esjp.common.uitable.MultiPrint">
-                <property name="Type">EBilling_ProtocolAbstract</property>
+                <property name="Type">EBilling_DocumentLogAbstract</property>
                 <property name="LinkFrom">DocumentLinkAbstract</property>
             </evaluate>
         </target>

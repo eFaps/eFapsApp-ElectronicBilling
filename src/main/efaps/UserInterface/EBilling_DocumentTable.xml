@@ -35,6 +35,10 @@
             <property name="Label">EBilling_DocumentTable.document.Label</property>
             <property name="HRef">TREE</property>
         </field>
+        <field name="identifier">
+            <property name="Attribute">Identifier</property>
+            <property name="Label">EBilling_DocumentAbstract/Identifier.Label</property>
+        </field>
         <field name="status">
             <property name="FilterType">Status</property>
             <property name="FilterBase">Database</property>
@@ -42,7 +46,7 @@
             <property name="Attribute">StatusAbstract</property>
             <property name="Label">EBilling_DocumentAbstract/StatusAbstract.Label</property>
         </field>
-         <field name="created">
+        <field name="created">
             <property name="Attribute">Created</property>
             <property name="Label">EBilling_DocumentAbstract/Created.Label</property>
         </field>

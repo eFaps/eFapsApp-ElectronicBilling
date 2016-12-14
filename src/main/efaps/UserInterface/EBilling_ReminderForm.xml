@@ -29,10 +29,17 @@
             <property name="Label">EBilling_DocumentTable.document.Label</property>
             <property name="HRef">TREE</property>
         </field>
-        <field name="status">
-            <property name="FilterType">PICKLIST</property>
+         <field name="status">
             <property name="Attribute">StatusAbstract</property>
             <property name="Label">EBilling_DocumentAbstract/StatusAbstract.Label</property>
+        </field>
+        <field name="identifier">
+            <property name="Attribute">Identifier</property>
+            <property name="Label">EBilling_DocumentAbstract/Identifier.Label</property>
+        </field>
+        <field name="confirmation">
+            <property name="Attribute">Confirmation</property>
+            <property name="Label">EBilling_DocumentAbstract/Confirmation.Label</property>
         </field>
         <field character="Group" name="createGroup">
             <property name="GroupCount">2</property>

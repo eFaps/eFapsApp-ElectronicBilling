@@ -66,6 +66,18 @@
             </trigger>
         </attribute>
         <attribute>
+            <name>Identifier</name>
+            <type>String</type>
+            <sqltable>EBilling_DocumentSQLTable</sqltable>
+            <sqlcolumn>IDENT</sqlcolumn>
+        </attribute>
+        <attribute>
+            <name>Confirmation</name>
+            <type>String</type>
+            <sqltable>EBilling_DocumentSQLTable</sqltable>
+            <sqlcolumn>CONFIRMATION</sqlcolumn>
+        </attribute>
+        <attribute>
             <name>Creator</name>
             <type>CreatorLink</type>
             <sqltable>EBilling_DocumentSQLTable</sqltable>

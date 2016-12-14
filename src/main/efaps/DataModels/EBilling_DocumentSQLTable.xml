@@ -33,6 +33,8 @@
             <column name="CREATED"      type="DATETIME"     not-null="true" />
             <column name="MODIFIER"     type="INTEGER"      not-null="true" />
             <column name="MODIFIED"     type="DATETIME"     not-null="true" />
+            <column name="IDENT"        type="STRING_SHORT"                 length="64"/>
+            <column name="CONFIRMATION" type="STRING_SHORT"                 length="64"/>
             <foreign name="T_EBILLDOC_FK_COMPANYID"   key="COMPANYID" reference="T_USERABSTRACT(ID)" />
             <foreign name="T_EBILLDOC_FK_DOCID"       key="DOCID"     reference="T_ERPDOC(ID)" />
             <foreign name="T_EBILLDOC_FK_CRTR"        key="CREATOR"   reference="T_USERPERSON(ID)" />

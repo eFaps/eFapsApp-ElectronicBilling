@@ -276,8 +276,8 @@ public abstract class EBillingDocument_Base
         throws EFapsException
     {
         final Instance docInstance = _parameter.getInstance();
-        final QueryBuilder queryBldr = new QueryBuilder(CIEBilling.ProtocolAbstract);
-        queryBldr.addWhereAttrEqValue(CIEBilling.ProtocolAbstract.DocumentLinkAbstract, docInstance);
+        final QueryBuilder queryBldr = new QueryBuilder(CIEBilling.DocumentLogAbstract);
+        queryBldr.addWhereAttrEqValue(CIEBilling.DocumentLogAbstract.DocumentLinkAbstract, docInstance);
         for (final Instance protInst : queryBldr.getQuery().execute()) {
             new Delete(protInst).execute();
         }
