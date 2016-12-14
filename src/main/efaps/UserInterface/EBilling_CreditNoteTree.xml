@@ -31,7 +31,7 @@
         </target>
         <type>EBilling_CreditNote</type>
         <childs>
-            <child>EBilling_DocumentAbstractTree_Protocol</child>
+            <child>EBilling_DocumentAbstractTree_Log</child>
             <child>EBilling_DocumentAbstractTree_File</child>
         </childs>
         <property name="Target">content</property>
