@@ -24,7 +24,7 @@
         <name>EBilling_DocumentLogForm</name>
         <field name="docName">
             <property name="SelectAlternateOID">linkto[DocumentLinkAbstract].oid</property>
-            <property name="Phrase">$&lt;linkto[DocumentLinkAbstract].type.label&gt; - $&lt;linkto[DocumentLinkAbstract].attribute[Name]&gt;</property>
+            <property name="Phrase">$&lt;linkto[DocumentLinkAbstract].type.label&gt; - $&lt;linkto[DocumentLinkAbstract].linkto[DocumentLinkAbstract].attribute[Name]&gt;</property>
             <property name="UIProvider">org.efaps.admin.datamodel.ui.StringUI</property>
             <property name="Label">EBilling_DocumentTable.document.Label</property>
             <property name="HRef">TREE</property>

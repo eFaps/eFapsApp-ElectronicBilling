@@ -31,9 +31,6 @@
                 <property name="Type">EBilling_Log</property>
             </evaluate>
         </target>
-        <parents>
-            <parent>Sales_MyDesk</parent>
-        </parents>
         <property name="Target">content</property>
         <property name="TargetShowCheckBoxes">true</property>
         <property name="TargetMode">view</property>
