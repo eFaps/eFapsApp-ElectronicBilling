@@ -31,6 +31,10 @@
         <field name="created">
             <property name="Attribute">Created</property>
             <property name="Label">EBilling_LogAbstract/Created.Label</property>
+            <property name="FilterType">FREETEXT</property>
+            <property name="FilterRequired">TRUE</property>
+            <property name="FilterBase">DATABASE</property>
+            <property name="FilterDefault">WEEK</property>
         </field>
         <field name="content">
             <property name="Attribute">Content</property>
