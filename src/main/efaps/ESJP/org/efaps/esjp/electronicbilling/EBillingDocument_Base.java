@@ -24,6 +24,7 @@ import java.util.UUID;
 import org.efaps.admin.datamodel.Status;
 import org.efaps.admin.datamodel.Type;
 import org.efaps.admin.event.Parameter;
+import org.efaps.admin.event.Parameter.ParameterValues;
 import org.efaps.admin.event.Return;
 import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
@@ -163,7 +164,7 @@ public abstract class EBillingDocument_Base
         throws EFapsException
     {
         if (InstanceUtils.isType(_salesDocInst, CISales.Invoice) && ElectronicBilling.INVOICE_CREATEREPORT.get()) {
-            final Parameter parameter = ParameterUtil.clone(_parameter);
+            final Parameter parameter = ParameterUtil.clone(_parameter, ParameterValues.INSTANCE, _salesDocInst);
             ParameterUtil.setProperty(parameter, "JasperConfig", Sales.getSysConfig().getUUID().toString());
             ParameterUtil.setProperty(parameter, "JasperConfigReport", Sales.INVOICE_JASPERREPORT.getKey());
             ParameterUtil.setProperty(parameter, "JasperConfigMime", Sales.INVOICE_MIME.getKey());
@@ -172,7 +173,7 @@ public abstract class EBillingDocument_Base
         } else if (InstanceUtils.isType(_salesDocInst, CISales.Receipt) && ElectronicBilling.RECEIPT_CREATEREPORT
                         .get()) {
 
-            final Parameter parameter = ParameterUtil.clone(_parameter);
+            final Parameter parameter = ParameterUtil.clone(_parameter, ParameterValues.INSTANCE, _salesDocInst);
             ParameterUtil.setProperty(parameter, "JasperConfig", Sales.getSysConfig().getUUID().toString());
             ParameterUtil.setProperty(parameter, "JasperConfigReport", Sales.RECEIPT_JASPERREPORT.getKey());
             ParameterUtil.setProperty(parameter, "JasperConfigMime", Sales.RECEIPT_MIME.getKey());
@@ -181,7 +182,7 @@ public abstract class EBillingDocument_Base
         } else if (InstanceUtils.isType(_salesDocInst, CISales.Reminder) && ElectronicBilling.REMINDER_CREATEREPORT
                         .get()) {
 
-            final Parameter parameter = ParameterUtil.clone(_parameter);
+            final Parameter parameter = ParameterUtil.clone(_parameter, ParameterValues.INSTANCE, _salesDocInst);
             ParameterUtil.setProperty(parameter, "JasperConfig", Sales.getSysConfig().getUUID().toString());
             ParameterUtil.setProperty(parameter, "JasperConfigReport", Sales.REMINDER_JASPERREPORT.getKey());
             ParameterUtil.setProperty(parameter, "JasperConfigMime", Sales.REMINDER_MIME.getKey());
@@ -190,7 +191,7 @@ public abstract class EBillingDocument_Base
         } else if (InstanceUtils.isType(_salesDocInst, CISales.CreditNote) && ElectronicBilling.CREDITNOTE_CREATEREPORT
                         .get()) {
 
-            final Parameter parameter = ParameterUtil.clone(_parameter);
+            final Parameter parameter = ParameterUtil.clone(_parameter, ParameterValues.INSTANCE, _salesDocInst);
             ParameterUtil.setProperty(parameter, "JasperConfig", Sales.getSysConfig().getUUID().toString());
             ParameterUtil.setProperty(parameter, "JasperConfigReport", Sales.CREDITNOTE_JASPERREPORT.getKey());
             ParameterUtil.setProperty(parameter, "JasperConfigMime", Sales.CREDITNOTE_MIME.getKey());
