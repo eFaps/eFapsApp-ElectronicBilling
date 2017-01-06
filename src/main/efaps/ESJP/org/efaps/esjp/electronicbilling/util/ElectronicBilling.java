@@ -111,6 +111,13 @@ public final class ElectronicBilling
 
     /** See description. */
     @EFapsSysConfAttribute
+    public static final PropertiesSysConfAttribute INVOICE_VERIFY= new PropertiesSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Invoice.Verification")
+                    .description("Properties that permit to define when an Electronic Invoice should be aborted.");
+
+    /** See description. */
+    @EFapsSysConfAttribute
     public static final StringSysConfAttribute RECEIPT_CREATEONSTATUS = new StringSysConfAttribute()
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
                     .key(ElectronicBilling.BASE + "Receipt.CreateOnStatusChange")
@@ -132,6 +139,13 @@ public final class ElectronicBilling
                     .key(ElectronicBilling.BASE + "Receipt.CreateReport")
                     .description("Activate the creation of the Report for Receipt")
                     .defaultValue(true);
+
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final PropertiesSysConfAttribute RECEIPT_VERIFY= new PropertiesSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Receipt.Verification")
+                    .description("Properties that permit to define when an Electronic Receipt should be aborted.");
 
     /** See description. */
     @EFapsSysConfAttribute
@@ -159,6 +173,14 @@ public final class ElectronicBilling
 
     /** See description. */
     @EFapsSysConfAttribute
+    public static final PropertiesSysConfAttribute REMINDER_VERIFY= new PropertiesSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Reminder.Verification")
+                    .description("Properties that permit to define when an Electronic Reminder should be aborted.");
+
+
+    /** See description. */
+    @EFapsSysConfAttribute
     public static final StringSysConfAttribute CREDITNOTE_CREATEONSTATUS = new StringSysConfAttribute()
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
                     .key(ElectronicBilling.BASE + "CreditNote.CreateOnStatusChange")
@@ -180,6 +202,14 @@ public final class ElectronicBilling
                     .key(ElectronicBilling.BASE + "CreditNote.CreateReport")
                     .description("Activate the creation of the Report for CreditNote")
                     .defaultValue(true);
+
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final PropertiesSysConfAttribute CREDITNOTE_VERIFY= new PropertiesSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "CreditNote.Verification")
+                    .description("Properties that permit to define when an Electronic CreditNote should be aborted.");
+
 
     /**
      * @return the SystemConfigruation for Sales

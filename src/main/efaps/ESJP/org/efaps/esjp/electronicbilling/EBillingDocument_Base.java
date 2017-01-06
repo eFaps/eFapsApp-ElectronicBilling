@@ -37,6 +37,7 @@ import org.efaps.db.InstanceQuery;
 import org.efaps.db.PrintQuery;
 import org.efaps.db.QueryBuilder;
 import org.efaps.db.SelectBuilder;
+import org.efaps.db.Update;
 import org.efaps.esjp.ci.CIContacts;
 import org.efaps.esjp.ci.CIEBilling;
 import org.efaps.esjp.ci.CIERP;
@@ -146,6 +147,76 @@ public abstract class EBillingDocument_Base
                             ret = insert.getInstance();
                         }
                     }
+                }
+            }
+            ret = verifyElecDocInst(_parameter, ret);
+        }
+        return ret;
+    }
+
+    /**
+     * Ckeck for a verification. If verifaction is not passed, set status
+     * to aborted and return null.
+     *
+     * @param _parameter the parameter
+     * @return true, if successful
+     */
+    protected Instance verifyElecDocInst(final Parameter _parameter,
+                                         final Instance _elecDocInst)
+        throws EFapsException
+    {
+        Instance ret = _elecDocInst;
+        if (InstanceUtils.isType(_elecDocInst, CIEBilling.CreditNote) && ElectronicBilling.CREDITNOTE_VERIFY.exists()
+                        || InstanceUtils.isType(_elecDocInst, CIEBilling.Invoice)
+                                        && ElectronicBilling.INVOICE_VERIFY.exists()
+                        || InstanceUtils.isType(_elecDocInst, CIEBilling.Receipt)
+                                        && ElectronicBilling.RECEIPT_VERIFY.exists()
+                        || InstanceUtils.isType(_elecDocInst, CIEBilling.Reminder) && ElectronicBilling.REMINDER_VERIFY
+                                        .exists()) {
+            Properties props = null;
+            if (InstanceUtils.isType(_elecDocInst, CIEBilling.Invoice)) {
+                props = ElectronicBilling.INVOICE_VERIFY.get();
+            } else if (InstanceUtils.isType(_elecDocInst, CIEBilling.Receipt)) {
+                props = ElectronicBilling.RECEIPT_VERIFY.get();
+            } else if (InstanceUtils.isType(_elecDocInst, CIEBilling.CreditNote)) {
+                props = ElectronicBilling.CREDITNOTE_VERIFY.get();
+            } else if (InstanceUtils.isType(_elecDocInst, CIEBilling.Reminder)) {
+                props = ElectronicBilling.REMINDER_VERIFY.get();
+            }
+            if (props != null) {
+                boolean pass = true;
+                // test must return true to go on
+                if (props.containsKey("PositivTest4RegexOnName")) {
+                    final PrintQuery print = new PrintQuery(_elecDocInst);
+                    final SelectBuilder selDocName = SelectBuilder.get()
+                                    .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
+                                    .attribute(CIERP.DocumentAbstract.Name);
+                    print.addSelect(selDocName);
+                    print.executeWithoutAccessCheck();
+                    final String docName = print.getSelect(selDocName);
+                    if (!docName.matches(props.getProperty("PositivTest4RegexOnName"))) {
+                        pass = false;
+                    }
+                } else if (props.containsKey("NegativTest4RegexOnName")) {
+                    final PrintQuery print = new PrintQuery(_elecDocInst);
+                    final SelectBuilder selDocName = SelectBuilder.get()
+                                    .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
+                                    .attribute(CIERP.DocumentAbstract.Name);
+                    print.addSelect(selDocName);
+                    print.executeWithoutAccessCheck();
+                    final String docName = print.getSelect(selDocName);
+                    if (docName.matches(props.getProperty("NegativTest4RegexOnName"))) {
+                        pass = false;
+                    }
+                }
+
+                if (!pass) {
+                    final Status status = Status.find(_elecDocInst.getType().getStatusAttribute().getLink().getUUID(),
+                                    "Aborted");
+                    final Update update = new Update(_elecDocInst);
+                    update.add(CIEBilling.DocumentAbstract.StatusAbstract, status);
+                    update.executeWithoutTrigger();
+                    ret = null;
                 }
             }
         }
