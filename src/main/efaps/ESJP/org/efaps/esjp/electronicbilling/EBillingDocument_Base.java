@@ -328,7 +328,7 @@ public abstract class EBillingDocument_Base
                 final Object obj = print.getSelect(selEmails);
                 if (obj instanceof List) {
                     ret.addAll((List<String>) obj);
-                } else {
+                } else if (obj != null) {
                     ret.add((String) obj);
                 }
             }
