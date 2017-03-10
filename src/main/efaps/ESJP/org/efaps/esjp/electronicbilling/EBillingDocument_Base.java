@@ -360,4 +360,23 @@ public abstract class EBillingDocument_Base
         }
         return new Return();
     }
+
+    /**
+     * Resend.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return the return
+     * @throws EFapsException on error
+     */
+    public Return cancelDocument(final Parameter _parameter)
+        throws EFapsException
+    {
+        final List<Instance> instances = new ArrayList<>();
+        instances.add(_parameter.getInstance());
+        boolean cancel = true;
+        for (final IOnDocument listener : Listener.get().<IOnDocument>invoke(IOnDocument.class)) {
+            cancel = cancel && listener.onCancel(_parameter, instances.toArray(new Instance[instances.size()]));
+        }
+        return new Return();
+    }
 }

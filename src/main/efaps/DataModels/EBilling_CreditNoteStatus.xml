@@ -27,16 +27,19 @@
             <description>First step for electronic invoices.</description>
         </status>
         <status key="Issued">
-            <description>Second Step, meaning that the provider did recieve it with success.</description>
+            <description>Second Step, meaning that the provider did receive it with success.</description>
         </status>
         <status key="Erroneous">
-            <description>Second Step, meaning that the provider did recieve it with success.</description>
+            <description>Second Step, meaning that the provider did noreceive it with success.</description>
         </status>
         <status key="Successful">
-            <description>The process was concluded successfully.</description>
+            <description>Possible outcome. The process was concluded successfully.</description>
         </status>
         <status key="Aborted">
-            <description>Possible outcome</description>
+            <description>Possible outcome. The process was aborted.</description>
+        </status>
+        <status key="Canceled">
+            <description>Possible outcome. The process was canceled.</description>
         </status>
     </definition>
 </datamodel-statusgroup>

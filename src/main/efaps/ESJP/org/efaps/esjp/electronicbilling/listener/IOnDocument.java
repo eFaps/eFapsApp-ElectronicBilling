@@ -49,4 +49,16 @@ public interface IOnDocument
     void afterCreate(final Parameter _parameter,
                      final Instance... _instances)
         throws EFapsException;
+
+    /**
+     * On cancel. Must return true
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @param _instances the instances
+     * @return true, if successful
+     * @throws EFapsException on error
+     */
+    boolean onCancel(final Parameter _parameter,
+                     final Instance... _instances)
+         throws EFapsException;;
 }

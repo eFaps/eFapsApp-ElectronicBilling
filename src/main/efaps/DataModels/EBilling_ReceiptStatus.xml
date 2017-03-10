@@ -38,5 +38,8 @@
         <status key="Aborted">
             <description>Possible outcome</description>
         </status>
+        <status key="Canceled">
+            <description>Possible outcome. The process was canceled.</description>
+        </status>
     </definition>
 </datamodel-statusgroup>
