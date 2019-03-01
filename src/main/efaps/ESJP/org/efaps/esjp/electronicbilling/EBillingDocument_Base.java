@@ -155,7 +155,7 @@ public abstract class EBillingDocument_Base
     }
 
     /**
-     * Ckeck for a verification. If verifaction is not passed, set status
+     * Check for a verification. If verify action is not passed, set status
      * to aborted and return null.
      *
      * @param _parameter the parameter
