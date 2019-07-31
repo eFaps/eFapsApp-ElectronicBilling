@@ -170,7 +170,7 @@ public abstract class QRCodeSelect_Base
         final String idCard = print.getSelect(selIDCard);
         final String idCardType = print.getSelect(selIDCardType);
 
-        ContactInfo ret = null;
+        ContactInfo ret = new ContactInfo();
         if (StringUtils.isNotEmpty(taxNumber)) {
             ret = new ContactInfo()
                             .setNumeroDocumento(taxNumber)
@@ -179,7 +179,7 @@ public abstract class QRCodeSelect_Base
             ret = new ContactInfo()
                             .setNumeroDocumento(idCard)
                             .setTipoDocumento(idCardType);
-        } else if (_allowAnonymous && "03".equals(_docType)) {
+        } else if (_allowAnonymous && ("03".equals(_docType) || "07".equals(_docType))) {
             ret = new ContactInfo()
                             .setNumeroDocumento("0")
                             .setTipoDocumento("-");
