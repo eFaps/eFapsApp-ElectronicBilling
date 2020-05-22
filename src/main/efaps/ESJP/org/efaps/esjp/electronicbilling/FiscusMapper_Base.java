@@ -17,17 +17,22 @@
 
 package org.efaps.esjp.electronicbilling;
 
+import org.apache.commons.lang3.StringUtils;
 import org.efaps.admin.event.Parameter;
 import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
+import org.efaps.db.CachedPrintQuery;
 import org.efaps.db.Instance;
 import org.efaps.db.MultiPrintQuery;
+import org.efaps.db.PrintQuery;
 import org.efaps.db.QueryBuilder;
 import org.efaps.db.SelectBuilder;
 import org.efaps.esjp.ci.CIProducts;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.contacts.Contacts;
 import org.efaps.esjp.db.InstanceUtils;
+import org.efaps.esjp.products.ProductFamily;
+import org.efaps.esjp.products.util.Products;
 import org.efaps.util.EFapsException;
 
 @EFapsUUID("a1379109-a71a-4beb-af8b-16146339998f")
@@ -106,4 +111,28 @@ public abstract class FiscusMapper_Base
         return ret;
     }
 
+    protected String evalUNSPSC(final Instance _productInstance)
+        throws EFapsException
+    {
+        String ret = null;
+        if (Products.FAMILY_ACTIVATE_UNSPSC.get()) {
+            final PrintQuery print = CachedPrintQuery.get4Request(_productInstance);
+            final SelectBuilder selFamInts = SelectBuilder.get().linkto(CIProducts.ProductAbstract.ProductFamilyLink)
+                            .instance();
+            print.addSelect(selFamInts);
+            print.executeWithoutAccessCheck();
+            Instance inst = print.getSelect(selFamInts);
+            while (StringUtils.isEmpty(ret) && InstanceUtils.isValid(inst)) {
+                final PrintQuery famPrint = new CachedPrintQuery(inst, ProductFamily.CACHEKEY);
+                final SelectBuilder selParentInst = SelectBuilder.get().linkto(
+                                CIProducts.ProductFamilyStandart.ParentLink).instance();
+                famPrint.addSelect(selParentInst);
+                famPrint.addAttribute(CIProducts.ProductFamilyAbstract.UNSPSC);
+                famPrint.execute();
+                inst = famPrint.getSelect(selParentInst);
+                ret = famPrint.<String>getAttribute(CIProducts.ProductFamilyAbstract.UNSPSC);
+            }
+        }
+        return ret;
+    }
 }
