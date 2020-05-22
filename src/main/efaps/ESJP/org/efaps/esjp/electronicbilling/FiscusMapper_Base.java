@@ -135,4 +135,74 @@ public abstract class FiscusMapper_Base
         }
         return ret;
     }
+    /**
+     * Anexo VII-117-2017
+     *
+     * Catálogo No. 07: Códigos de Tipo de Afectación del IGV
+     * <ul>
+     * <li>10: Gravado - Operacion Onerosa</li>
+     * <li>11: Gravado - Retiro por premio</li>
+     * <li>12: Gravado - Retiro por donación</li>
+     * <li>13: Gravado - Retiro </li>
+     * <li>14: Gravado - Retiro por publicidad</li>
+     * <li>15: Gravado - Bonificaciones</li>
+     * <li>16: Gravado - Retiro por entrega a trabajadores</li>
+     * <li>17: Gravado - IVAP</li>
+     * <li>20: Exonerado - Operación Onerosa</li>
+     * <li>21: Exonerado - Transferencia Gratuita</li>
+     * <li>30: Inafecto - Operación Onerosa </li>
+     * <li>31: Inafecto - Retiro por Bonificación</li>
+     * <li>32: Inafecto - Retiro</li>
+     * <li>33: Inafecto - Retiro por Muestras Médicas</li>
+     * <li>34: Inafecto - Retiro por Convenio Colectivo</li>
+     * <li>35: Inafecto - Retiro por premio</li>
+     * <li>36: Inafecto - Retiro por publicidad</li>
+     * <li>40: Exportación</li>
+     * </ul>
+     * @return key
+     * @throws EFapsException
+     */
+    protected String evalTaxAffectation4TaxFree(final Parameter _parameter, final Instance _contactInst)
+        throws EFapsException
+    {
+        String ret;
+        // if the contact is foreign we assume exportation
+        // else taxfree operations
+        if (Contacts.isForeign(_parameter, _contactInst)) {
+            ret = "40";
+        } else {
+            ret = "20";
+        }
+        return ret;
+    }
+    /**
+     * Anexo VII-117-2017
+     *
+     * <table>
+     * <tr><th>Código</th><th>Descripción</th><th>UN/ECE 5153-Duty or tax or fee type name code</th></tr>
+     * <tr><td>1000</td><td>IGV IMPUESTO GENERAL A LAS VENTAS</td><td>VAT</td></tr>
+     * <tr><td>2000</td><td>ISC IMPUESTO SELECTIVO AL CONSUMO</td><td>EXC</td></tr>
+     * <tr><td>9995</td><td>EXPORTACIÓN</td><td>FRE</td></tr>
+     * <tr><td>9996</td><td>GRATUITO</td><td>FRE</td></tr>
+     * <tr><td>9997</td><td>EXONERADO</td><td>VAT</td></tr>
+     * <tr><td>9998</td><td>INAFECTO</td><td>FRE</td></tr>
+     * <tr><td>9999</td><td>OTROS CONCEPTOS DE PAGO</td><td>OTH</td></tr>
+     * </table>
+     *
+     * @param _parameter
+     * @param _contactInst
+     * @return
+     * @throws EFapsException
+     */
+    protected String[] evalTaxCode4TaxFree(final Parameter _parameter, final Instance _contactInst)
+        throws EFapsException
+    {
+        String[] ret;
+        if (Contacts.isForeign(_parameter, _contactInst)) {
+            ret = new String[] { "FRE", "9995", "EXP" };
+        } else {
+            ret = new String[] { "VAT", "9997", "EXONERADO" };
+        }
+        return ret;
+    }
 }
