@@ -27,10 +27,13 @@ import org.efaps.db.MultiPrintQuery;
 import org.efaps.db.PrintQuery;
 import org.efaps.db.QueryBuilder;
 import org.efaps.db.SelectBuilder;
+import org.efaps.esjp.ci.CIERP;
 import org.efaps.esjp.ci.CIProducts;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.contacts.Contacts;
 import org.efaps.esjp.db.InstanceUtils;
+import org.efaps.esjp.electronicbilling.util.ElectronicBilling;
+import org.efaps.esjp.erp.util.ERP;
 import org.efaps.esjp.products.ProductFamily;
 import org.efaps.esjp.products.util.Products;
 import org.efaps.util.EFapsException;
@@ -205,4 +208,42 @@ public abstract class FiscusMapper_Base
         }
         return ret;
     }
+
+    protected String getDocumentType4Document(final Instance _docInst)
+    {
+        String ret;
+        if (_docInst.getType().isCIType(CISales.Invoice)) {
+            ret = "01";
+        } else if (_docInst.getType().isCIType(CISales.Receipt)) {
+            ret = "03";
+        } else if (_docInst.getType().isCIType(CISales.CreditNote)) {
+            ret = "07";
+        } else if (_docInst.getType().isCIType(CISales.Reminder)) {
+            ret = "08";
+        } else {
+            ret = "UNKOWN";
+        }
+        return ret;
+    }
+
+    protected String evalPremisesCode(final Parameter _parameter, final Instance _docInst)
+        throws EFapsException
+    {
+        String ret = null;
+        if (ElectronicBilling.PREMISESCODE_BY_SERIAL.exists()) {
+            final PrintQuery print = new PrintQuery(_docInst);
+            print.addAttribute(CIERP.DocumentAbstract.Name);
+            print.executeWithoutAccessCheck();
+            final String docName = print.getAttribute(CIERP.DocumentAbstract.Name);
+
+            for (final String key : ElectronicBilling.PREMISESCODE_BY_SERIAL.get().stringPropertyNames()) {
+                if (docName.startsWith(key)) {
+                    ret = ElectronicBilling.PREMISESCODE_BY_SERIAL.get().getProperty(key);
+                    break;
+                }
+            }
+        }
+        return StringUtils.isEmpty(ret) ? ERP.COMPANY_ESTABLECIMIENTO.get() : ret;
+    }
+
 }

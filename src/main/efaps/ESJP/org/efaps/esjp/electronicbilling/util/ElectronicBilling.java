@@ -210,6 +210,14 @@ public final class ElectronicBilling
                     .key(ElectronicBilling.BASE + "CreditNote.Verification")
                     .description("Properties that permit to define when an Electronic CreditNote should be aborted.");
 
+    @EFapsSysConfAttribute
+    public static final PropertiesSysConfAttribute PREMISESCODE_BY_SERIAL = new PropertiesSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "PremisesCode.BySerial")
+                    .description("Mapping of Serial to Establecimiento\n"
+                                    + "Uses StartsWith as comparision.\n"
+                                    + "F001=14\n"
+                                    + "FC003=14");
 
     /**
      * @return the SystemConfigruation for Sales
