@@ -219,6 +219,16 @@ public final class ElectronicBilling
                                     + "F001=14\n"
                                     + "FC003=14");
 
+    @EFapsSysConfAttribute
+    public static final PropertiesSysConfAttribute TAXMAPPING = new PropertiesSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "TaxMapping")
+                    .description("Tax Mapping")
+                    .addDefaultValue("tax.06e40be6-40d8-44f4-9d8f-585f2f97ce63.id", "VAT")
+                    .addDefaultValue("tax.06e40be6-40d8-44f4-9d8f-585f2f97ce63.nombre", "IGV")
+                    .addDefaultValue("tax.06e40be6-40d8-44f4-9d8f-585f2f97ce63.sunat-id", "1000")
+                    .addDefaultValue("tax.06e40be6-40d8-44f4-9d8f-585f2f97ce63.afectacion-igv", "10");
+
     /**
      * @return the SystemConfigruation for Sales
      * @throws CacheReloadException on error

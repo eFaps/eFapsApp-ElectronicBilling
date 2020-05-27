@@ -36,6 +36,7 @@ import org.efaps.esjp.electronicbilling.util.ElectronicBilling;
 import org.efaps.esjp.erp.util.ERP;
 import org.efaps.esjp.products.ProductFamily;
 import org.efaps.esjp.products.util.Products;
+import org.efaps.esjp.sales.tax.Tax;
 import org.efaps.util.EFapsException;
 
 @EFapsUUID("a1379109-a71a-4beb-af8b-16146339998f")
@@ -244,6 +245,12 @@ public abstract class FiscusMapper_Base
             }
         }
         return StringUtils.isEmpty(ret) ? ERP.COMPANY_ESTABLECIMIENTO.get() : ret;
+    }
+
+    protected String getTaxProperty(final Tax _tax, final String _key)
+        throws EFapsException
+    {
+        return ElectronicBilling.TAXMAPPING.get().getProperty("tax." + _tax.getUUID().toString() + "." + _key);
     }
 
 }
