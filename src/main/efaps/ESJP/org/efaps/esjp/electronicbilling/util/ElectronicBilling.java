@@ -229,6 +229,14 @@ public final class ElectronicBilling
                     .addDefaultValue("tax.06e40be6-40d8-44f4-9d8f-585f2f97ce63.sunat-id", "1000")
                     .addDefaultValue("tax.06e40be6-40d8-44f4-9d8f-585f2f97ce63.afectacion-igv", "10");
 
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute ISSUER_EMAIL = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Issuer.Email")
+                    .description("defines the issuer email")
+                    .defaultValue("info@synercom.pe");
+
     /**
      * @return the SystemConfigruation for Sales
      * @throws CacheReloadException on error
