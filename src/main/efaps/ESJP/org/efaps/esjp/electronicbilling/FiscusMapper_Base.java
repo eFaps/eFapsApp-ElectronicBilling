@@ -83,7 +83,7 @@ public abstract class FiscusMapper_Base
      * @throws EFapsException on error
      *
      */
-    protected String getTipoOperacion(final Parameter _parameter, final Instance _docInst, final Instance _contactInst)
+    protected String getOperationType(final Parameter _parameter, final Instance _docInst, final Instance _contactInst)
         throws EFapsException
     {
         String ret = null;
