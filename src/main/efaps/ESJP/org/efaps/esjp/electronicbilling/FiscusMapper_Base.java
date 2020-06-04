@@ -17,6 +17,10 @@
 
 package org.efaps.esjp.electronicbilling;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Locale;
+
 import org.apache.commons.lang3.StringUtils;
 import org.efaps.admin.event.Parameter;
 import org.efaps.admin.program.esjp.EFapsApplication;
@@ -37,6 +41,7 @@ import org.efaps.esjp.erp.util.ERP;
 import org.efaps.esjp.products.ProductFamily;
 import org.efaps.esjp.products.util.Products;
 import org.efaps.esjp.sales.tax.Tax;
+import org.efaps.number2words.Converter;
 import org.efaps.util.EFapsException;
 
 @EFapsUUID("a1379109-a71a-4beb-af8b-16146339998f")
@@ -251,6 +256,15 @@ public abstract class FiscusMapper_Base
         throws EFapsException
     {
         return ElectronicBilling.TAXMAPPING.get().getProperty("tax." + _tax.getUUID().toString() + "." + _key);
+    }
+
+    protected String number2words(final BigDecimal _amount)
+        throws EFapsException
+    {
+        return new StringBuilder().append(Converter.getMaleConverter(
+                        new Locale("es")).convert(_amount.longValue())).append(" y ")
+                        .append(_amount.setScale(2, RoundingMode.HALF_UP).toPlainString().replaceAll("^.*\\.", ""))
+                        .append("/100 ").toString().toUpperCase();
     }
 
 }

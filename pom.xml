@@ -148,6 +148,11 @@
     </build>
     <dependencies>
         <dependency>
+            <groupId>org.efaps</groupId>
+            <artifactId>number2words</artifactId>
+            <version>0.2</version>
+        </dependency>
+        <dependency>
             <groupId>org.efaps.apps</groupId>
             <artifactId>sales</artifactId>
             <version>${efaps.app.dependencies}</version>
