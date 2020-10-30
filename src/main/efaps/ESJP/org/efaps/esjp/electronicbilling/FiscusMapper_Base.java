@@ -210,7 +210,8 @@ public abstract class FiscusMapper_Base
         if (Contacts.isForeign(_parameter, _contactInst)) {
             ret = new String[] { "FRE", "9995", "EXP" };
         } else {
-            ret = new String[] { "VAT", "9997", "EXONERADO" };
+            // Email from Factus 2020-10-30 -> EXONERADO = EXO
+            ret = new String[] { "VAT", "9997", "EXO" };
         }
         return ret;
     }
