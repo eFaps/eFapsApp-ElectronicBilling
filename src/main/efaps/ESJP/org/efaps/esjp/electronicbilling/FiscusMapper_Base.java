@@ -40,6 +40,7 @@ import org.efaps.esjp.electronicbilling.util.ElectronicBilling;
 import org.efaps.esjp.erp.util.ERP;
 import org.efaps.esjp.products.ProductFamily;
 import org.efaps.esjp.products.util.Products;
+import org.efaps.esjp.sales.Calculator;
 import org.efaps.esjp.sales.tax.Tax;
 import org.efaps.number2words.Converter;
 import org.efaps.util.EFapsException;
@@ -216,6 +217,19 @@ public abstract class FiscusMapper_Base
         return ret;
     }
 
+    protected String[] evalTaxCode4Gratis(final Parameter _parameter)
+        throws EFapsException
+    {
+        return new String[] { "FRE", "9996", "GRA" };
+    }
+
+    protected String evalTaxAffectation4Gratis(final Parameter _parameter)
+        throws EFapsException
+    {
+
+        return "11";
+    }
+
     protected String getDocumentType4Document(final Instance _docInst)
     {
         String ret;
@@ -268,4 +282,8 @@ public abstract class FiscusMapper_Base
                         .append("/100 ").toString().toUpperCase();
     }
 
+    protected boolean isGratis(final Calculator calculator)
+    {
+        return calculator.getDiscount().compareTo(new BigDecimal(100)) == 0;
+    }
 }
