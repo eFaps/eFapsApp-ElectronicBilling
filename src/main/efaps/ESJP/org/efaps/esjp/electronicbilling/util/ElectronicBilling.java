@@ -237,6 +237,13 @@ public final class ElectronicBilling
                     .description("defines the issuer email")
                     .defaultValue("info@synercom.pe");
 
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute PAYMENTMETHODREGEX = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "PaymentMethod.Regex")
+                    .description("Name of ChannelSalesCondition will be matched against this to be included");
+
     /**
      * @return the SystemConfigruation for Sales
      * @throws CacheReloadException on error
