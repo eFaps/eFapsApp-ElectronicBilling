@@ -456,7 +456,7 @@ public abstract class FiscusMapper_Base
     protected PaymentMethod getPaymentMethod(final Instance _docInst)
         throws EFapsException
     {
-        final var ret = new PaymentMethod();
+        final PaymentMethod ret = new PaymentMethod();
         if (InstanceUtils.isType(_docInst, CISales.Invoice) || InstanceUtils.isType(_docInst, CISales.Receipt)) {
             final PrintQuery print = new PrintQuery(_docInst);
             print.addAttribute(CISales.DocumentAbstract.DueDate, CISales.DocumentAbstract.Date,
