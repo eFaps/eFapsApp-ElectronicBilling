@@ -466,7 +466,7 @@ public abstract class FiscusMapper_Base
             final DateTime dueDate = print.getAttribute(CISales.DocumentAbstract.DueDate);
             final BigDecimal crossTotal = print.getAttribute(CISales.DocumentSumAbstract.RateCrossTotal);
 
-            if (dueDate.isAfter(date)) {
+            if (dueDate != null && dueDate.isAfter(date)) {
                 boolean add = true;
                 if (ElectronicBilling.PAYMENTMETHODREGEX.exists()) {
                     final QueryBuilder queryBldr = new QueryBuilder(CISales.ChannelSalesCondition2DocumentAbstract);
