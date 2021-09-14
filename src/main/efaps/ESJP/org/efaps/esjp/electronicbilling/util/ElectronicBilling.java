@@ -244,6 +244,20 @@ public final class ElectronicBilling
                     .key(ElectronicBilling.BASE + "PaymentMethod.Regex")
                     .description("Name of ChannelSalesCondition will be matched against this to be included");
 
+    @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute RETENTION_ISAGENT = new BooleanSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "retention.IsAgent")
+                    .defaultValue(false)
+                    .description("Is the Current Company \"Agente de Retencion\"");
+
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute RETENTION_PERCENTAGE = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "retention.Percentage")
+                    .defaultValue("3")
+                    .description("Is the Current Company \"Agente de Retencion\"");
+
     /**
      * @return the SystemConfigruation for Sales
      * @throws CacheReloadException on error

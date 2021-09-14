@@ -44,6 +44,7 @@ import org.efaps.esjp.products.ProductFamily;
 import org.efaps.esjp.products.util.Products;
 import org.efaps.esjp.sales.Calculator;
 import org.efaps.esjp.sales.tax.Tax;
+import org.efaps.esjp.sales.util.Sales.TaxRetention;
 import org.efaps.number2words.Converter;
 import org.efaps.util.EFapsException;
 import org.joda.time.DateTime;
@@ -453,12 +454,18 @@ public abstract class FiscusMapper_Base
         return calculator.getDiscount().compareTo(new BigDecimal(100)) == 0;
     }
 
+    //Rudolf 2021-09-07 El monto neto pendiente de pago no incluye las retenciones del IGV, el monto del
+    //deposito que deba efectuar el adquiriente o usuario, seg7un el Sistema de Pago de Obligaciones Tributarios
+    //regulado por el texto unico ordenado de Decreto Legislativo N940
     protected PaymentMethod getPaymentMethod(final Instance _docInst)
         throws EFapsException
     {
         final PaymentMethod ret = new PaymentMethod();
         if (InstanceUtils.isType(_docInst, CISales.Invoice) || InstanceUtils.isType(_docInst, CISales.Receipt)) {
             final PrintQuery print = new PrintQuery(_docInst);
+            final SelectBuilder selContactInst = SelectBuilder.get().linkto(CISales.DocumentAbstract.Contact)
+                            .instance();
+            print.addSelect(selContactInst);
             print.addAttribute(CISales.DocumentAbstract.DueDate, CISales.DocumentAbstract.Date,
                             CISales.DocumentSumAbstract.RateCrossTotal);
             print.executeWithoutAccessCheck();
@@ -485,7 +492,26 @@ public abstract class FiscusMapper_Base
                     }
                 }
                 if (add) {
-                    ret.getInstallments().add(new Installment().setAmount(crossTotal).setDueDate(LocalDate
+                    BigDecimal installmentAmount = crossTotal;
+                    // check if we are "Agente de Retencion"
+                    if (ElectronicBilling.RETENTION_ISAGENT.get()) {
+                        final Instance contactInst = print.getSelect(selContactInst);
+                        final PrintQuery retPrint = new PrintQuery(contactInst);
+                        final SelectBuilder selRetention = SelectBuilder.get()
+                                        .clazz(CISales.Contacts_ClassTaxinfo)
+                                        .attribute(CISales.Contacts_ClassTaxinfo.Retention);
+                        retPrint.addSelect(selRetention);
+                        retPrint.executeWithoutAccessCheck();
+                        final TaxRetention retention = retPrint.getSelect(selRetention);
+                        // check that the client is not also "Agente de Retencion"
+                        if (!(retention != null && TaxRetention.AGENT.equals(retention))) {
+                            installmentAmount = crossTotal.multiply(new BigDecimal("100")
+                                            .subtract(new BigDecimal(ElectronicBilling.RETENTION_PERCENTAGE.get())))
+                                            .divide(new BigDecimal("100"), RoundingMode.HALF_DOWN)
+                                            .setScale(2, RoundingMode.HALF_DOWN);
+                        }
+                    }
+                    ret.getInstallments().add(new Installment().setAmount(installmentAmount).setDueDate(LocalDate
                                     .of(dueDate.getYear(), dueDate.getMonthOfYear(), dueDate.getDayOfMonth())));
                 }
             }
