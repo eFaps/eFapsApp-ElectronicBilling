@@ -31,7 +31,18 @@ import org.efaps.admin.program.esjp.EFapsUUID;
 public class PaymentMethod
 {
 
+    private boolean skip;
     private final List<Installment> installments = new ArrayList<>();
+
+    public boolean isSkip()
+    {
+        return skip;
+    }
+
+    public void setSkip(final boolean skip)
+    {
+        this.skip = skip;
+    }
 
     public List<Installment> getInstallments()
     {

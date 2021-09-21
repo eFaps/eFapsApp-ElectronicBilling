@@ -461,7 +461,14 @@ public abstract class FiscusMapper_Base
         throws EFapsException
     {
         final PaymentMethod ret = new PaymentMethod();
-        if (InstanceUtils.isType(_docInst, CISales.Invoice) || InstanceUtils.isType(_docInst, CISales.Receipt)) {
+        if (InstanceUtils.isType(_docInst, CISales.CreditNote)) {
+            // Factus 2021-09-19
+            // NC con motivo 01 no debe llevar forma de pago.
+            // En notas de credito solo se aplica la forma  de pago al credito cuando es motivo 13
+            // y el documento relacionado ha sido pago al Credito y el cliente requiere modificar la fecha o monto de las cuotas;
+            // del resto no se aplica la forma de pago en NC.
+            ret.setSkip(true);
+        } else if (InstanceUtils.isType(_docInst, CISales.Invoice) || InstanceUtils.isType(_docInst, CISales.Receipt)) {
             final PrintQuery print = new PrintQuery(_docInst);
             final SelectBuilder selContactInst = SelectBuilder.get().linkto(CISales.DocumentAbstract.Contact)
                             .instance();
