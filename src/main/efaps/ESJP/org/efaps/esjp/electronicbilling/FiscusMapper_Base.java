@@ -510,8 +510,8 @@ public abstract class FiscusMapper_Base
                         retPrint.addSelect(selRetention);
                         retPrint.executeWithoutAccessCheck();
                         final TaxRetention retention = retPrint.getSelect(selRetention);
-                        // check that the client is not also "Agente de Retencion"
-                        if (!(retention != null && TaxRetention.AGENT.equals(retention))) {
+                        // check that the client is also "Agente de Retencion"
+                        if (retention != null && TaxRetention.AGENT.equals(retention)) {
                             installmentAmount = crossTotal.multiply(new BigDecimal("100")
                                             .subtract(new BigDecimal(ElectronicBilling.RETENTION_PERCENTAGE.get())))
                                             .divide(new BigDecimal("100"), RoundingMode.HALF_DOWN)
