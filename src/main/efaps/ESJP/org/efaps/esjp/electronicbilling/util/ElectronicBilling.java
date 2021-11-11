@@ -8,6 +8,7 @@ import org.efaps.admin.program.esjp.EFapsUUID;
 import org.efaps.api.annotation.EFapsSysConfAttribute;
 import org.efaps.api.annotation.EFapsSystemConfiguration;
 import org.efaps.esjp.admin.common.systemconfiguration.BooleanSysConfAttribute;
+import org.efaps.esjp.admin.common.systemconfiguration.IntegerSysConfAttribute;
 import org.efaps.esjp.admin.common.systemconfiguration.PropertiesSysConfAttribute;
 import org.efaps.esjp.admin.common.systemconfiguration.StringSysConfAttribute;
 import org.efaps.esjp.ci.CIEBilling;
@@ -142,10 +143,19 @@ public final class ElectronicBilling
 
     /** See description. */
     @EFapsSysConfAttribute
-    public static final PropertiesSysConfAttribute RECEIPT_VERIFY= new PropertiesSysConfAttribute()
+    public static final PropertiesSysConfAttribute RECEIPT_VERIFY = new PropertiesSysConfAttribute()
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
                     .key(ElectronicBilling.BASE + "Receipt.Verification")
                     .description("Properties that permit to define when an Electronic Receipt should be aborted.");
+
+
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final IntegerSysConfAttribute RECEIPT_ANONYMOUSTHRESHOLD = new IntegerSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Receipt.AnonymousThreshold")
+                    .defaultValue(700)
+                    .description("Amount in BaseCurrency that requires Named receipts and not anonymous");
 
     /** See description. */
     @EFapsSysConfAttribute
