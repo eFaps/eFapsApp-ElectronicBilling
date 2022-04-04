@@ -25,6 +25,7 @@
         <childs>
             <child>EBilling_ReceiptTree_Menu_Action_Resend</child>
             <child>EBilling_ReceiptTree_Menu_Action_Cancel</child>
+            <child>EBilling_ReceiptTree_Menu_Action_SetSuccessful</child>
             <child>ERP_DocumentAbstractTree_Action_EditStatus</child>
         </childs>
     </definition>
