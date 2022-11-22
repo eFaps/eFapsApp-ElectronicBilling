@@ -6,11 +6,13 @@ import org.efaps.admin.common.SystemConfiguration;
 import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
 import org.efaps.api.annotation.EFapsSysConfAttribute;
+import org.efaps.api.annotation.EFapsSysConfLink;
 import org.efaps.api.annotation.EFapsSystemConfiguration;
 import org.efaps.esjp.admin.common.systemconfiguration.BooleanSysConfAttribute;
 import org.efaps.esjp.admin.common.systemconfiguration.IntegerSysConfAttribute;
 import org.efaps.esjp.admin.common.systemconfiguration.PropertiesSysConfAttribute;
 import org.efaps.esjp.admin.common.systemconfiguration.StringSysConfAttribute;
+import org.efaps.esjp.admin.common.systemconfiguration.SysConfLink;
 import org.efaps.esjp.ci.CIEBilling;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.util.cache.CacheReloadException;
@@ -267,6 +269,27 @@ public final class ElectronicBilling
                     .key(ElectronicBilling.BASE + "retention.Percentage")
                     .defaultValue("3")
                     .description("Is the Current Company \"Agente de Retencion\"");
+
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute KEYSTORE_ALIAS = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Keystore.Alias");
+
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute KEYSTORE_PWD = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Keystore.Password");
+
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute KEYSTORE_KEYPWD = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Keystore.KeyPassword");
+
+    @EFapsSysConfLink
+    public static final SysConfLink KEYSTORE = new SysConfLink()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "KeyStore")
+                    .description("Keystore containing the cert to sign the UBL");
 
     /**
      * @return the SystemConfigruation for Sales

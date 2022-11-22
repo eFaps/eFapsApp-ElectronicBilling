@@ -18,6 +18,9 @@ package org.efaps.esjp.electronicbilling;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +30,7 @@ import org.efaps.admin.event.Parameter;
 import org.efaps.admin.event.Return;
 import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
+import org.efaps.db.Checkout;
 import org.efaps.db.Instance;
 import org.efaps.eql.EQL;
 import org.efaps.esjp.ci.CIContacts;
@@ -87,7 +91,6 @@ public abstract class UBLService_Base extends FiscusMapper
         LOG.info("UBL: {}", ublXml);
         final var signResponse = sign(ublXml);
         LOG.info("signResponse: {}", signResponse);
-        // store(_invoice, signResponse, _properties);
         return ublInvoice;
     }
 
@@ -332,13 +335,37 @@ public abstract class UBLService_Base extends FiscusMapper
         return ret;
     }
 
-
     public SignResponseDto sign(final String ublXml)
+        throws EFapsException
     {
-        return new Signing().withKeyStorePath(configProps.getCertificate().getKeyStorePath())
-                        .withKeyAlias(configProps.getCertificate().getKeyAlias())
-                        .withKeyStorePwd(configProps.getCertificate().getKeyStorePwd())
-                        .withKeyPwd(configProps.getCertificate().getKeyPwd())
+        return new UBlSigning()
+                        .withKeyAlias(ElectronicBilling.KEYSTORE_ALIAS.get())
+                        .withKeyStorePwd(ElectronicBilling.KEYSTORE_PWD.get())
+                        .withKeyPwd(ElectronicBilling.KEYSTORE_KEYPWD.get())
                         .signDocument(ublXml);
     }
+
+    public static class UBlSigning
+        extends Signing
+    {
+
+        @Override
+        protected KeyStore.PrivateKeyEntry getKeyEntry()
+        {
+            KeyStore.PrivateKeyEntry ret = null;
+            try {
+                final var checkout = new Checkout(ElectronicBilling.KEYSTORE.get());
+                final var inputStream = checkout.execute();
+                final KeyStore ks = KeyStore.getInstance("JKS");
+                ks.load(inputStream, getKeyStorePwd().toCharArray());
+                ret = (KeyStore.PrivateKeyEntry) ks.getEntry(getKeyAlias(),
+                                new KeyStore.PasswordProtection(getKeyPwd().toCharArray()));
+            } catch (KeyStoreException | NoSuchAlgorithmException | java.security.cert.CertificateException
+                            | java.security.UnrecoverableEntryException | java.io.IOException | EFapsException e) {
+                LOG.error("Catched", e);
+            }
+            return ret;
+        }
+    }
+
 }

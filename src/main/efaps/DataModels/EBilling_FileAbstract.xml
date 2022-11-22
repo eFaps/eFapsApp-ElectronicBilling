@@ -55,6 +55,12 @@
             <sqltable>EBilling_FileSQLTable</sqltable>
             <sqlcolumn>DOCID</sqlcolumn>
         </attribute>
+         <attribute>
+            <name>Name</name>
+            <type>String</type>
+            <sqltable>EBilling_FileSQLTable</sqltable>
+            <sqlcolumn>NAME</sqlcolumn>
+        </attribute>
         <attribute>
             <name>Creator</name>
             <type>CreatorLink</type>
