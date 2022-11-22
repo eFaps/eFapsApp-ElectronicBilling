@@ -90,7 +90,7 @@ public abstract class UBLService_Base extends FiscusMapper
         final var ublXml = ubl.getUBLXml();
         LOG.info("UBL: {}", ublXml);
         final var signResponse = sign(ublXml);
-        LOG.info("signResponse: {}", signResponse);
+        LOG.info("signResponse: Hash {}\n UBL {}", signResponse.getHash(), signResponse.getUbl());
         return ublInvoice;
     }
 
