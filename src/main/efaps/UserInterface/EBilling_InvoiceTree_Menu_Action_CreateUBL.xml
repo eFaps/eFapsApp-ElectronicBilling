@@ -29,5 +29,6 @@
         <target>
             <execute method="ceateUBL" program="org.efaps.esjp.electronicbilling.UBLService"></execute>
         </target>
+        <property name="TargetShowFile">true</property>
     </definition>
 </ui-command>

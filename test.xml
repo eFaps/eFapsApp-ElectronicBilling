@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?><Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2" xmlns:sac="urn:sunat:names:specification:ubl:peru:schema:xsd:SunatAggregateComponents-1">
+<ext:UBLExtensions>
+<ext:UBLExtension>
+<ext:ExtensionContent><ds:Signature Id="SB001-000095" xmlns:ds="http://www.w3.org/2000/09/xmldsig#"><ds:SignedInfo><ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/><ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/><ds:Reference URI=""><ds:Transforms><ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/></ds:Transforms><ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/><ds:DigestValue>XXVAkuGVDhxGW9dOb+Gx+lV0VMY=</ds:DigestValue></ds:Reference></ds:SignedInfo><ds:SignatureValue>eBYkrA9wImPFaB5TOku0CDYoIZWLYbn5dHscEzBZcZDz3anaFrbBoDQzbmJh1ZSrI+IYgSZReZrS&#13;
+gnLl0yZm8aysCNc9nMIygfKbUUh7bh8/3+UCDRTw8j5TbCpooFRslvqOjMTtOesqNrsIQWr1FLHp&#13;
+ql6TdcnU3wcMFclK/8mwa9NcrK3yX1SsEHnhvKsIp1rHih1eX+6jQPyevXuVApRcgZcXk/+zpVWk&#13;
+KlVSJ0tep/Do8imXG0VEjY/V2SKpAwAucPwlDMc8WsObpA4wpOU29tql82iKh4v+zU70LWomwQW8&#13;
+WnvTzLykOnKY3Ve4oajBAP+S7PmVkBVQzHi6Tg==</ds:SignatureValue><ds:KeyInfo><ds:X509Data><ds:X509SubjectName>1.2.840.113549.1.9.1=#160f6172674062697a6c696e6b732e6c61,CN=JUAN ANTONIO ENRIQUE RAMIREZ GASTON WICHT,OU=DNI 08236618,OU=20478005017,OU=Validated by ZyTrust Sociedad Anónima,O=BIZLINKS S.A.C.,L=LIMA,C=PE</ds:X509SubjectName><ds:X509Certificate>MIIGNTCCBR2gAwIBAgITMwAAWQRVgUqS+OO28wAAAABZBDANBgkqhkiG9w0BAQsFADCBkjELMAkG&#13;
+A1UEBhMCQ0gxEDAOBgNVBAoTB1dJU2VLZXkxJjAkBgNVBAsTHUNvcHlyaWdodCAoYykgMjAxNiBX&#13;
+SVNlS2V5IFNBMRYwFAYDVQQLEw1JbnRlcm5hdGlvbmFsMTEwLwYDVQQDEyhXSVNlS2V5IENlcnRp&#13;
+ZnlJRCBBZHZhbmNlZCBTZXJ2aWNlcyBDQSA0MB4XDTIxMTIyNDE3NDIyM1oXDTIyMTIyNDE3NDIy&#13;
+M1owgegxCzAJBgNVBAYTAlBFMQ0wCwYDVQQHEwRMSU1BMRgwFgYDVQQKEw9CSVpMSU5LUyBTLkEu&#13;
+Qy4xLzAtBgNVBAsMJlZhbGlkYXRlZCBieSBaeVRydXN0IFNvY2llZGFkIEFuw7NuaW1hMRQwEgYD&#13;
+VQQLEwsyMDQ3ODAwNTAxNzEVMBMGA1UECxMMRE5JIDA4MjM2NjE4MTIwMAYDVQQDEylKVUFOIEFO&#13;
+VE9OSU8gRU5SSVFVRSBSQU1JUkVaIEdBU1RPTiBXSUNIVDEeMBwGCSqGSIb3DQEJARYPYXJnQGJp&#13;
+emxpbmtzLmxhMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAya7r+YjiG0xgc7ImuRqy&#13;
+Y+54piY/+PFAuDLCxm/g0STnMla/lmOkhpEodH1cefOA0R7Z2TqVvaZSMkk2uPoe+CgOHCqyBIQ8&#13;
+ah0nfapahfoNxy1OQrYuB3KuAwBpes08EHFb10psN6PTVCPG78hVkfkMnKarJRbufmHS1mC4+3MH&#13;
+tPh0MyqBA6FMzcXCp6ir11rVKg2L+bw5+k1JX6ihveMX2A9i0GWlO2q47cctdic+VjPfJq/H9lKu&#13;
+IGzUCH5KtlVV0fPor+XsEH7AxSvzy8zy+6r/NGGR3WJhBpD5KuY9Xr+YclQfSMHAjvEDZh93EJes&#13;
+z5SRolWV4+SOChA7BQIDAQABo4ICKjCCAiYwHQYDVR0OBBYEFAB9rUNk6l4limhoXEFZ2Ijk4Kfg&#13;
+MA4GA1UdDwEB/wQEAwIGwDAfBgNVHSMEGDAWgBT05JtX0q7CnohNALorr2XJY6mHmzA8BgNVHR8E&#13;
+NTAzMDGgL6AthitodHRwOi8vcHVibGljLndpc2VrZXkuY29tL2NybC93Y2lkYXNjYTQuY3JsMG0G&#13;
+CCsGAQUFBwEBBGEwXzA3BggrBgEFBQcwAoYraHR0cDovL3B1YmxpYy53aXNla2V5LmNvbS9jcnQv&#13;
+d2NpZGFzY2E0LmNydDAkBggrBgEFBQcwAYYYaHR0cDovL29jc3Aud2lzZWtleS5jb20vMCkGA1Ud&#13;
+JQQiMCAGCCsGAQUFBwMCBgorBgEEAYI3CgMMBggrBgEFBQcDBDA1BgkrBgEEAYI3FQoEKDAmMAoG&#13;
+CCsGAQUFBwMCMAwGCisGAQQBgjcKAwwwCgYIKwYBBQUHAwQwNgYDVR0RBC8wLaAaBggJkiaJk/Is&#13;
+CqAODAxETkkgMDgyMzY2MTiBD2FyZ0BiaXpsaW5rcy5sYTBEBgkqhkiG9w0BCQ8ENzA1MA4GCCqG&#13;
+SIb3DQMCAgIAgDAOBggqhkiG9w0DBAICAIAwBwYFKw4DAgcwCgYIKoZIhvcNAwcwRwYDVR0gBEAw&#13;
+PjA8BghghXQFDggBATAwMC4GCCsGAQUFBwIBFiJodHRwOi8vd3d3Lndpc2VrZXkuY29tL3JlcG9z&#13;
+aXRvcnkvMA0GCSqGSIb3DQEBCwUAA4IBAQB/1L49ivFWYJO+1NmXVLeHdezJoL2iY99TqD/cn9G5&#13;
+rTl92a+5kUyU8BNgij1OabNEUmY8BxpJnIGlQobYfd6Yc7Bk+HLsDyXb9r12pACZdQsZ05KRG9v1&#13;
+pZGz04MGD8aAMNu2sVKsoD9I0w2U0AZDaD55EM0QfiWEf5P14DGRUzuIk9XyqXZympbfEArrGMUZ&#13;
+MVrFKd27Mq1E8H6zxt1SpbqhbrYFeXve90ywajszWAaRerjKY/wCS+pqmmOF0qDiaPhLORHUlj9L&#13;
+JDXvD1zvRUN8L4IwNIwEvsvLvUzRC9CEiLK2Kkh0eIY5l5jIPXIOoaJFuH+9HmjdVq0VnFpE</ds:X509Certificate></ds:X509Data></ds:KeyInfo></ds:Signature></ext:ExtensionContent>
+</ext:UBLExtension>
+</ext:UBLExtensions>
+<cbc:UBLVersionID>2.1</cbc:UBLVersionID>
+<cbc:CustomizationID schemeAgencyName="PE:SUNAT">2.0</cbc:CustomizationID>
+<cbc:ID>F005-000004</cbc:ID>
+<cbc:IssueDate>2022-11-21</cbc:IssueDate>
+<cbc:InvoiceTypeCode listAgencyName="PE:SUNAT" listID="0101" listName="Tipo de Documento" listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo01">01</cbc:InvoiceTypeCode>
+<cbc:Note languageLocaleID="1000">CERO Y 00/100 </cbc:Note>
+<cbc:DocumentCurrencyCode listAgencyName="United Nations Economic Commission for Europe" listID="ISO 4217 Alpha" listName="Currency">PEN</cbc:DocumentCurrencyCode>
+<cac:Signature>
+<cbc:ID>SB001-000095</cbc:ID>
+<cac:SignatoryParty>
+<cac:PartyIdentification>
+<cbc:ID>20601028213</cbc:ID>
+</cac:PartyIdentification>
+<cac:PartyName>
+<cbc:Name>Synerbis S.A.C.</cbc:Name>
+</cac:PartyName>
+</cac:SignatoryParty>
+<cac:DigitalSignatureAttachment>
+<cac:ExternalReference>
+<cbc:URI>SB001-000095</cbc:URI>
+</cac:ExternalReference>
+</cac:DigitalSignatureAttachment>
+</cac:Signature>
+<cac:AccountingSupplierParty>
+<cac:Party>
+<cac:PartyIdentification>
+<cbc:ID schemeAgencyName="PE:SUNAT" schemeID="6" schemeName="Documento de Identidad" schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">20601028213</cbc:ID>
+</cac:PartyIdentification>
+<cac:PartyName>
+<cbc:Name>Synerbis S.A.C.</cbc:Name>
+</cac:PartyName>
+<cac:PartyLegalEntity>
+<cbc:RegistrationName>Synerbis S.A.C.</cbc:RegistrationName>
+<cac:RegistrationAddress>
+<cbc:ID schemeAgencyName="PE:INEI" schemeName="Ubigeos">150101</cbc:ID>
+<cbc:AddressTypeCode listAgencyName="PE:SUNAT" listName="Establecimientos anexos">0000</cbc:AddressTypeCode>
+<cac:AddressLine>
+<cbc:Line/>
+</cac:AddressLine>
+<cac:Country>
+<cbc:IdentificationCode listAgencyName="United Nations Economic Commission for Europe" listID="ISO 3166-1" listName="Country">PE</cbc:IdentificationCode>
+</cac:Country>
+</cac:RegistrationAddress>
+</cac:PartyLegalEntity>
+</cac:Party>
+</cac:AccountingSupplierParty>
+<cac:AccountingCustomerParty>
+<cac:Party>
+<cac:PartyIdentification>
+<cbc:ID schemeAgencyName="PE:SUNAT" schemeID="6" schemeName="Documento de Identidad" schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">20408833044</cbc:ID>
+</cac:PartyIdentification>
+<cac:PartyLegalEntity>
+<cbc:RegistrationName>Dinex S.A.C.</cbc:RegistrationName>
+<cac:RegistrationAddress>
+<cac:AddressLine>
+<cbc:Line/>
+</cac:AddressLine>
+</cac:RegistrationAddress>
+</cac:PartyLegalEntity>
+</cac:Party>
+</cac:AccountingCustomerParty>
+<cac:TaxTotal>
+<cbc:TaxAmount currencyID="PEN">0</cbc:TaxAmount>
+<cac:TaxSubtotal>
+<cbc:TaxableAmount currencyID="PEN">22.50</cbc:TaxableAmount>
+<cbc:TaxAmount currencyID="PEN">0</cbc:TaxAmount>
+<cac:TaxCategory>
+<cbc:Percent>18.0000000000000000</cbc:Percent>
+<cac:TaxScheme>
+<cbc:ID schemeAgencyName="PE:SUNAT" schemeName="Codigo de Tributos" schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo05">9996</cbc:ID>
+<cbc:Name>GRA</cbc:Name>
+<cbc:TaxTypeCode>FRE</cbc:TaxTypeCode>
+</cac:TaxScheme>
+</cac:TaxCategory>
+</cac:TaxSubtotal>
+</cac:TaxTotal>
+<cac:LegalMonetaryTotal>
+<cbc:LineExtensionAmount currencyID="PEN">0</cbc:LineExtensionAmount>
+<cbc:TaxExclusiveAmount currencyID="PEN">0.00</cbc:TaxExclusiveAmount>
+<cbc:TaxInclusiveAmount currencyID="PEN">0.00</cbc:TaxInclusiveAmount>
+<cbc:PayableAmount currencyID="PEN">0.00</cbc:PayableAmount>
+</cac:LegalMonetaryTotal>
+<cac:InvoiceLine>
+<cbc:ID>1</cbc:ID>
+<cbc:InvoicedQuantity unitCode="" unitCodeListAgencyName="United Nations Economic Commission for Europe" unitCodeListID="UN/ECE rec 20">1</cbc:InvoicedQuantity>
+<cbc:LineExtensionAmount currencyID="PEN">22.50</cbc:LineExtensionAmount>
+<cac:PricingReference>
+<cac:AlternativeConditionPrice>
+<cbc:PriceAmount currencyID="PEN">26.55</cbc:PriceAmount>
+<cbc:PriceTypeCode>01</cbc:PriceTypeCode>
+</cac:AlternativeConditionPrice>
+</cac:PricingReference>
+<cac:TaxTotal>
+<cbc:TaxAmount currencyID="PEN">4.05</cbc:TaxAmount>
+<cac:TaxSubtotal>
+<cbc:TaxableAmount currencyID="PEN">22.50</cbc:TaxableAmount>
+<cbc:TaxAmount currencyID="PEN">4.05</cbc:TaxAmount>
+<cac:TaxCategory>
+<cbc:Percent>18.0000000000000000</cbc:Percent>
+<cbc:TaxExemptionReasonCode listAgencyName="PE:SUNAT" listName="Afectacion de IGV" listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo07">11</cbc:TaxExemptionReasonCode>
+<cac:TaxScheme>
+<cbc:ID schemeAgencyName="PE:SUNAT" schemeName="Codigo de Tributos" schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo05">9996</cbc:ID>
+<cbc:Name>GRA</cbc:Name>
+<cbc:TaxTypeCode>FRE</cbc:TaxTypeCode>
+</cac:TaxScheme>
+</cac:TaxCategory>
+</cac:TaxSubtotal>
+</cac:TaxTotal>
+<cac:Item>
+<cbc:Description>sdfsdf</cbc:Description>
+<cac:SellersItemIdentification>
+<cbc:ID>11.001</cbc:ID>
+</cac:SellersItemIdentification>
+</cac:Item>
+<cac:Price>
+<cbc:PriceAmount currencyID="PEN">0</cbc:PriceAmount>
+</cac:Price>
+</cac:InvoiceLine>
+</Invoice>

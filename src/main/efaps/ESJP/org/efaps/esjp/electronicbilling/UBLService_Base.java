@@ -16,8 +16,11 @@
  */
 package org.efaps.esjp.electronicbilling;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -25,9 +28,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.efaps.admin.datamodel.Dimension;
 import org.efaps.admin.event.Parameter;
 import org.efaps.admin.event.Return;
+import org.efaps.admin.event.Return.ReturnValues;
 import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
 import org.efaps.db.Checkout;
@@ -37,6 +42,7 @@ import org.efaps.esjp.ci.CIContacts;
 import org.efaps.esjp.ci.CIEBilling;
 import org.efaps.esjp.ci.CIProducts;
 import org.efaps.esjp.ci.CISales;
+import org.efaps.esjp.common.file.FileUtil;
 import org.efaps.esjp.db.InstanceUtils;
 import org.efaps.esjp.electronicbilling.entities.AllowanceEntry;
 import org.efaps.esjp.electronicbilling.entities.ChargeEntry;
@@ -62,46 +68,76 @@ import org.efaps.util.EFapsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import oasis.names.specification.ubl.schema.xsd.commonaggregatecomponents_21.MonetaryTotalType;
+import oasis.names.specification.ubl.schema.xsd.invoice_21.InvoiceType;
+
 @EFapsUUID("6c3fda6b-7d54-41ca-bd7e-5a8531d2383e")
 @EFapsApplication("eFapsApp-ElectronicBilling")
-public abstract class UBLService_Base extends FiscusMapper
+public abstract class UBLService_Base
+    extends FiscusMapper
 {
 
     private static final Logger LOG = LoggerFactory.getLogger(UBLService.class);
 
-    public Return ceateUBL(final Parameter _parameter) throws EFapsException
+    public Return ceateUBL(final Parameter _parameter)
+        throws EFapsException
     {
+        final var ret = new Return();
         final var instance = _parameter.getInstance();
         final var eval = EQL.builder().print(instance)
                         .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract).instance().as("docInstance")
                         .evaluate();
         final Instance docInstance = eval.get("docInstance");
         if (InstanceUtils.isType(docInstance, CISales.Invoice)) {
-            ceateInvoice(docInstance);
+            final var file = ceateInvoice(docInstance);
+            ret.put(ReturnValues.VALUES, file);
+            ret.put(ReturnValues.TRUE, true);
         }
-        return new Return();
+        return ret;
     }
 
-    public Invoice ceateInvoice(final Instance instance)
+    public File ceateInvoice(final Instance docInstance)
         throws EFapsException
     {
-        final var ublInvoice = new Invoice();
-        final var ubl = fill(instance, ublInvoice);
+        File file = null;
+        final boolean freeOfCharge = isFreeOfCharge(docInstance);
+        final var ublInvoice = new Invoice()
+        {
+
+            @Override
+            protected MonetaryTotalType getMonetaryTotal(final InvoiceType invoice)
+            {
+                final var total = super.getMonetaryTotal(invoice);
+                if (freeOfCharge) {
+                    total.setLineExtensionAmount(BigDecimal.ZERO);
+                }
+                return total;
+            }
+        };
+        final var ubl = fill(docInstance, ublInvoice, freeOfCharge);
         final var ublXml = ubl.getUBLXml();
         LOG.info("UBL: {}", ublXml);
         final var signResponse = sign(ublXml);
         LOG.info("signResponse: Hash {}\n UBL {}", signResponse.getHash(), signResponse.getUbl());
-        return ublInvoice;
+        try {
+            file = new FileUtil().getFile(ubl.getNumber(), "xml");
+            FileUtils.writeStringToFile(file, signResponse.getUbl(), StandardCharsets.UTF_8);
+        } catch (final IOException e) {
+            LOG.error("Catched", e);
+        }
+        return file;
     }
 
     protected AbstractDocument<?> fill(final Instance docInstance,
-                                       final AbstractDocument<?> ubl)
+                                       final AbstractDocument<?> ubl,
+                                       final boolean freeOfCharge)
         throws EFapsException
     {
         final var eval = EQL.builder().print(docInstance)
                         .attribute(CISales.DocumentSumAbstract.Name, CISales.DocumentSumAbstract.Taxes,
-                                   CISales.DocumentSumAbstract.RateCurrencyId, CISales.DocumentSumAbstract.Date,
-                                   CISales.DocumentSumAbstract.RateCrossTotal, CISales.DocumentSumAbstract.RateNetTotal)
+                                        CISales.DocumentSumAbstract.RateCurrencyId, CISales.DocumentSumAbstract.Date,
+                                        CISales.DocumentSumAbstract.RateCrossTotal,
+                                        CISales.DocumentSumAbstract.RateNetTotal)
                         .linkto(CISales.DocumentSumAbstract.Contact).instance().as("contactInstance")
                         .evaluate();
 
@@ -116,15 +152,18 @@ public abstract class UBLService_Base extends FiscusMapper
         final var paymentMethod = getPaymentMethod(docInstance);
 
         ubl.withNumber(eval.get(CISales.DocumentSumAbstract.Name))
-            .withCurrency(currencyInst.getISOCode())
-            .withDate(date)
-            .withCrossTotal(crossTotal)
-            .withNetTotal(eval.get(CISales.DocumentSumAbstract.RateNetTotal))
-            .withSupplier(getSupplier())
-            .withCustomer(getCustomer(eval.get("contactInstance")))
-            .withAllowancesCharges(allowancesCharges)
-            .withLines(getLines(docInstance))
-            .withPaymentTerms(new IPaymentTerms()
+                        .withCurrency(currencyInst.getISOCode())
+                        .withDate(date)
+                        .withCrossTotal(crossTotal)
+                        .withNetTotal(eval.get(CISales.DocumentSumAbstract.RateNetTotal))
+                        .withSupplier(getSupplier())
+                        .withCustomer(getCustomer(eval.get("contactInstance")))
+                        .withAllowancesCharges(allowancesCharges)
+                        .withLines(getLines(docInstance, freeOfCharge))
+                        .withTaxes(getTaxes(taxes, false, freeOfCharge));
+
+        if (!freeOfCharge) {
+            ubl.withPaymentTerms(new IPaymentTerms()
             {
 
                 @Override
@@ -146,6 +185,7 @@ public abstract class UBLService_Base extends FiscusMapper
                     return null;
                 }
             });
+        }
         return ubl;
     }
 
@@ -214,8 +254,8 @@ public abstract class UBLService_Base extends FiscusMapper
         return ret;
     }
 
-
-    protected Supplier getSupplier() throws EFapsException
+    protected Supplier getSupplier()
+        throws EFapsException
     {
         final var ret = new Supplier();
         ret.setDoiType("6");
@@ -255,8 +295,7 @@ public abstract class UBLService_Base extends FiscusMapper
         return ret;
     }
 
-
-    protected ArrayList<ILine> getLines(final Instance docInstance)
+    protected ArrayList<ILine> getLines(final Instance docInstance, final boolean freeOfCharge)
         throws EFapsException
     {
         final var ret = new ArrayList<ILine>();
@@ -286,24 +325,38 @@ public abstract class UBLService_Base extends FiscusMapper
                             .withQuantity(eval.get(CISales.PositionSumAbstract.Quantity))
                             .withSku(eval.get("prodName"))
                             .withDescription(eval.get(CISales.PositionSumAbstract.ProductDesc))
-                            .withNetUnitPrice(eval.get(CISales.PositionSumAbstract.RateNetUnitPrice))
+                            .withNetUnitPrice(freeOfCharge ? BigDecimal.ZERO
+                                            : eval.get(CISales.PositionSumAbstract.RateNetUnitPrice))
                             .withCrossUnitPrice(eval.get(CISales.PositionSumAbstract.RateCrossUnitPrice))
                             .withNetPrice(eval.get(CISales.PositionSumAbstract.RateNetPrice))
                             .withCrossPrice(eval.get(CISales.PositionSumAbstract.RateCrossPrice))
                             .withUoMCode(Dimension.getUoM(uomId).getCommonCode())
-                            .withTaxEntries(getTaxes(taxes))
+                            .withTaxEntries(getTaxes(taxes, true, freeOfCharge))
                             .withAllowancesCharges(getCharges(taxes, true))
                             .build());
         }
         return ret;
     }
 
-    protected List<ITaxEntry> getTaxes(final Taxes taxes)
+    protected List<ITaxEntry> getTaxes(final Taxes taxes, final boolean isLine, final boolean freeOfCharge)
         throws EFapsException
     {
         final var ret = new ArrayList<ITaxEntry>();
         for (final var entry : taxes.getEntries()) {
-            if (getTaxProperty(entry.getUUID(), ".id") != null) {
+            if (freeOfCharge) {
+                final var tax = Tax_Base.get(entry.getCatUUID(), entry.getUUID());
+                ret.add(org.efaps.esjp.electronicbilling.entities.TaxEntry.builder()
+                                .withTaxType(org.efaps.ubl.documents.TaxType.ADVALOREM)
+                                .withAmount(isLine ? entry.getAmount() : BigDecimal.ZERO)
+                                .withTaxableAmount(entry.getBase())
+                                .withTaxExemptionReasonCode(isLine ? "11" : null)
+                                .withPercent(tax.getFactor().multiply(new BigDecimal(100)))
+                                .withName("GRA")
+                                .withCode("FRE")
+                                .withId("9996")
+                                .build());
+
+            } else if (getTaxProperty(entry.getUUID(), "id") != null) {
                 final var code = getTaxProperty(entry.getUUID(), "id");
                 final var name = getTaxProperty(entry.getUUID(), "nombre");
                 final var id = getTaxProperty(entry.getUUID(), "sunat-id");

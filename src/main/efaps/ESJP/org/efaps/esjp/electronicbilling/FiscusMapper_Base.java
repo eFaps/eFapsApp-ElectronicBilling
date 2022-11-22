@@ -33,6 +33,7 @@ import org.efaps.db.MultiPrintQuery;
 import org.efaps.db.PrintQuery;
 import org.efaps.db.QueryBuilder;
 import org.efaps.db.SelectBuilder;
+import org.efaps.eql.EQL;
 import org.efaps.esjp.ci.CIERP;
 import org.efaps.esjp.ci.CIProducts;
 import org.efaps.esjp.ci.CISales;
@@ -461,9 +462,24 @@ public abstract class FiscusMapper_Base
         return calculator.getDiscount().compareTo(new BigDecimal(100)) == 0;
     }
 
-    //Rudolf 2021-09-07 El monto neto pendiente de pago no incluye las retenciones del IGV, el monto del
-    //deposito que deba efectuar el adquiriente o usuario, seg7un el Sistema de Pago de Obligaciones Tributarios
-    //regulado por el texto unico ordenado de Decreto Legislativo N940
+    protected boolean isFreeOfCharge(final Instance docInstance)
+        throws EFapsException
+    {
+        final var eval = EQL.builder().print()
+                        .query(CISales.FreeOfChargeTag)
+                        .where()
+                        .attribute(CISales.FreeOfChargeTag.ObjectID).eq(docInstance)
+                        .select()
+                        .attribute(CISales.FreeOfChargeTag.ID)
+                        .evaluate();
+        return eval.next();
+    }
+
+    // Rudolf 2021-09-07 El monto neto pendiente de pago no incluye las
+    // retenciones del IGV, el monto del
+    // deposito que deba efectuar el adquiriente o usuario, seg7un el Sistema de
+    // Pago de Obligaciones Tributarios
+    // regulado por el texto unico ordenado de Decreto Legislativo N940
     protected PaymentMethod getPaymentMethod(final Instance _docInst)
         throws EFapsException
     {
@@ -471,8 +487,10 @@ public abstract class FiscusMapper_Base
         if (InstanceUtils.isType(_docInst, CISales.CreditNote)) {
             // Factus 2021-09-19
             // NC con motivo 01 no debe llevar forma de pago.
-            // En notas de credito solo se aplica la forma  de pago al credito cuando es motivo 13
-            // y el documento relacionado ha sido pago al Credito y el cliente requiere modificar la fecha o monto de las cuotas;
+            // En notas de credito solo se aplica la forma de pago al credito
+            // cuando es motivo 13
+            // y el documento relacionado ha sido pago al Credito y el cliente
+            // requiere modificar la fecha o monto de las cuotas;
             // del resto no se aplica la forma de pago en NC.
             ret.setSkip(true);
         } else if (InstanceUtils.isType(_docInst, CISales.Invoice) || InstanceUtils.isType(_docInst, CISales.Receipt)) {
