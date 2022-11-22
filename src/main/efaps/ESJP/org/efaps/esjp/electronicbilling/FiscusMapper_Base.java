@@ -21,6 +21,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.Locale;
+import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.efaps.admin.event.Parameter;
@@ -437,7 +438,13 @@ public abstract class FiscusMapper_Base
     protected String getTaxProperty(final Tax _tax, final String _key)
         throws EFapsException
     {
-        return ElectronicBilling.TAXMAPPING.get().getProperty("tax." + _tax.getUUID().toString() + "." + _key);
+        return getTaxProperty(_tax.getUUID(), _key);
+    }
+
+    protected String getTaxProperty(final UUID uuid, final String _key)
+        throws EFapsException
+    {
+        return ElectronicBilling.TAXMAPPING.get().getProperty("tax." + uuid.toString() + "." + _key);
     }
 
     protected String number2words(final BigDecimal _amount)
