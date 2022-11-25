@@ -51,9 +51,9 @@ public class TaxEntry
 
     private TaxEntry(final Builder builder)
     {
-        amount = builder.amount;
-        taxableAmount = builder.taxableAmount;
-        percent = builder.percent;
+        amount = builder.amount.setScale(2, RoundingMode.HALF_UP);
+        taxableAmount = builder.taxableAmount.setScale(2, RoundingMode.HALF_UP);
+        percent = builder.percent.setScale(2, RoundingMode.HALF_UP);
         id = builder.id;
         name = builder.name;
         code = builder.code;
