@@ -333,6 +333,10 @@ public abstract class UBLService_Base
                             .withUoMCode(Dimension.getUoM(uomId).getCommonCode())
                             .withTaxEntries(getTaxes(taxes, true, freeOfCharge))
                             .withAllowancesCharges(getCharges(taxes, true))
+                            // CATALOGO Nr.16:
+                            // 01 - Precio Unitario (incluye IGV),
+                            // 02 - Valor referencial unitario en operaciones no onerosas
+                            .withPriceType(freeOfCharge ? "02" : "01")
                             .build());
         }
         return ret;
