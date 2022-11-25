@@ -17,6 +17,7 @@
 package org.efaps.esjp.electronicbilling.entities;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
@@ -68,7 +69,7 @@ public class TaxEntry
 
     public void setAmount(final BigDecimal amount)
     {
-        this.amount = amount;
+        this.amount = amount.setScale(2, RoundingMode.HALF_UP);
     }
 
     @Override
@@ -79,7 +80,7 @@ public class TaxEntry
 
     public void setTaxableAmount(final BigDecimal taxableAmount)
     {
-        this.taxableAmount = taxableAmount;
+        this.taxableAmount = taxableAmount.setScale(2, RoundingMode.HALF_UP);
     }
 
     @Override
@@ -90,7 +91,7 @@ public class TaxEntry
 
     public void setPercent(final BigDecimal percent)
     {
-        this.percent = percent;
+        this.percent = percent.setScale(2, RoundingMode.HALF_UP);
     }
 
     @Override

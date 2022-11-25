@@ -33,6 +33,7 @@ import java.math.BigDecimal;
  * limitations under the License.
  *
  */
+import java.math.RoundingMode;
 
 import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
@@ -56,8 +57,8 @@ public class AllowanceEntry
     {
         reason = builder.reason;
         factor = builder.factor;
-        amount = builder.amount;
-        baseAmount = builder.baseAmount;
+        amount = builder.amount.setScale(2, RoundingMode.HALF_UP);
+        baseAmount = builder.baseAmount.setScale(2, RoundingMode.HALF_UP);
     }
 
     @Override
