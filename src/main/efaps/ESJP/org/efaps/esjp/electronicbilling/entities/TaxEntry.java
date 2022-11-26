@@ -49,6 +49,8 @@ public class TaxEntry
 
     private TaxType taxType;
 
+    private boolean freeOfCharge;
+
     private TaxEntry(final Builder builder)
     {
         amount = builder.amount.setScale(2, RoundingMode.HALF_UP);
@@ -58,6 +60,7 @@ public class TaxEntry
         name = builder.name;
         code = builder.code;
         taxExemptionReasonCode = builder.taxExemptionReasonCode;
+        freeOfCharge = builder.freeOfCharge;
         setTaxType(builder.taxType);
     }
 
@@ -149,8 +152,19 @@ public class TaxEntry
         this.taxType = taxType;
     }
 
+    public boolean isFreeOfCharge()
+    {
+        return freeOfCharge;
+    }
+
+    public void setFreeOfCharge(final boolean freeOfCharge)
+    {
+        this.freeOfCharge = freeOfCharge;
+    }
+
     /**
      * Creates builder to build {@link TaxEntry}.
+     *
      * @return created builder
      */
     public static Builder builder()
@@ -172,6 +186,7 @@ public class TaxEntry
         private String code;
         private String taxExemptionReasonCode;
         private TaxType taxType;
+        private boolean freeOfCharge;
 
         private Builder()
         {
@@ -222,6 +237,11 @@ public class TaxEntry
         public Builder withTaxType(final TaxType taxType)
         {
             this.taxType = taxType;
+            return this;
+        }
+
+        public Builder withFreeOfCharge(final boolean freeOfCharge) {
+            this.freeOfCharge = freeOfCharge;
             return this;
         }
 

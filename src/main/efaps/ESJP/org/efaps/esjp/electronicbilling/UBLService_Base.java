@@ -160,32 +160,29 @@ public abstract class UBLService_Base
                         .withCustomer(getCustomer(eval.get("contactInstance")))
                         .withAllowancesCharges(allowancesCharges)
                         .withLines(getLines(docInstance, freeOfCharge))
-                        .withTaxes(getTaxes(taxes, false, freeOfCharge));
+                        .withTaxes(getTaxes(taxes, false, freeOfCharge))
+                        .withPaymentTerms(new IPaymentTerms()
+                        {
 
-        if (!freeOfCharge) {
-            ubl.withPaymentTerms(new IPaymentTerms()
-            {
+                            @Override
+                            public boolean isCredit()
+                            {
+                                return !paymentMethod.isCash();
+                            }
 
-                @Override
-                public boolean isCredit()
-                {
-                    return !paymentMethod.isCash();
-                }
+                            @Override
+                            public BigDecimal getTotal()
+                            {
+                                return crossTotal;
+                            }
 
-                @Override
-                public BigDecimal getTotal()
-                {
-                    return crossTotal;
-                }
-
-                @Override
-                public List<IInstallment> getInstallments()
-                {
-                    // TODO
-                    return null;
-                }
-            });
-        }
+                            @Override
+                            public List<IInstallment> getInstallments()
+                            {
+                                // TODO
+                                return null;
+                            }
+                        });
         return ubl;
     }
 
@@ -351,13 +348,14 @@ public abstract class UBLService_Base
                 final var tax = Tax_Base.get(entry.getCatUUID(), entry.getUUID());
                 ret.add(org.efaps.esjp.electronicbilling.entities.TaxEntry.builder()
                                 .withTaxType(org.efaps.ubl.documents.TaxType.ADVALOREM)
-                                .withAmount(isLine ? entry.getAmount() : BigDecimal.ZERO)
+                                .withAmount(entry.getAmount())
                                 .withTaxableAmount(entry.getBase())
                                 .withTaxExemptionReasonCode(isLine ? "11" : null)
                                 .withPercent(tax.getFactor().multiply(new BigDecimal(100)))
                                 .withName("GRA")
                                 .withCode("FRE")
                                 .withId("9996")
+                                .withFreeOfCharge(true)
                                 .build());
 
             } else if (getTaxProperty(entry.getUUID(), "id") != null) {
