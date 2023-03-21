@@ -14,6 +14,7 @@ import org.efaps.esjp.admin.common.systemconfiguration.PropertiesSysConfAttribut
 import org.efaps.esjp.admin.common.systemconfiguration.StringSysConfAttribute;
 import org.efaps.esjp.admin.common.systemconfiguration.SysConfLink;
 import org.efaps.esjp.ci.CIEBilling;
+import org.efaps.esjp.ci.CINumGenEBilling;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.util.cache.CacheReloadException;
 
@@ -290,6 +291,12 @@ public final class ElectronicBilling
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
                     .key(ElectronicBilling.BASE + "KeyStore")
                     .description("Keystore containing the cert to sign the UBL");
+
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute SUMMARY_SEQ = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Summary.Sequence")
+                    .defaultValue(CINumGenEBilling.SummarySequence.uuid.toString());
 
     /**
      * @return the SystemConfigruation for Sales

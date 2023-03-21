@@ -17,26 +17,13 @@
 -->
 <ui-menu xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>4e72875c-0825-4f46-b885-ad4d4050d9d7</uuid>
+    <uuid>8d9dac00-5e0e-435b-9172-a4f760438b46</uuid>
     <file-application>eFapsApp-ElectronicBilling</file-application>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>EBilling_MyDesk</name>
-        <access>
-            <role>EBilling_Admin</role>
-        </access>
+        <name>EBilling_SummaryMyDesk_Menu</name>
         <childs>
-            <child>EBilling_DocumentMyDesk</child>
-            <child>EBilling_SummaryMyDesk</child>
-            <child>EBilling_LogMyDesk</child>
-            <child>EBilling_KeystoreMyDesk</child>
+            <child>EBilling_SummaryMyDesk_Menu_Action</child>
         </childs>
-        <parents>
-            <parent>Sales_MyDesk</parent>
-        </parents>
-        <property name="Target">content</property>
-        <property name="TargetShowCheckBoxes">true</property>
-        <property name="TargetMode">view</property>
-        <property name="TargetTableType">GridX</property>
     </definition>
 </ui-menu>

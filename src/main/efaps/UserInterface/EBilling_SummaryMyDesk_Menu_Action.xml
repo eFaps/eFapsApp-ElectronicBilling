@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?><!--
 
- Copyright 2003 - 2023 The eFaps Team
+ Copyright 2003 - 2016 The eFaps Team
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -17,26 +17,13 @@
 -->
 <ui-menu xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>4e72875c-0825-4f46-b885-ad4d4050d9d7</uuid>
+    <uuid>0f49d5c8-83a2-4eda-82e8-cccd8372ee41</uuid>
     <file-application>eFapsApp-ElectronicBilling</file-application>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>EBilling_MyDesk</name>
-        <access>
-            <role>EBilling_Admin</role>
-        </access>
+        <name>EBilling_SummaryMyDesk_Menu_Action</name>
         <childs>
-            <child>EBilling_DocumentMyDesk</child>
-            <child>EBilling_SummaryMyDesk</child>
-            <child>EBilling_LogMyDesk</child>
-            <child>EBilling_KeystoreMyDesk</child>
+            <child>EBilling_SummaryMyDesk_Menu_Action_Create</child>
         </childs>
-        <parents>
-            <parent>Sales_MyDesk</parent>
-        </parents>
-        <property name="Target">content</property>
-        <property name="TargetShowCheckBoxes">true</property>
-        <property name="TargetMode">view</property>
-        <property name="TargetTableType">GridX</property>
     </definition>
 </ui-menu>

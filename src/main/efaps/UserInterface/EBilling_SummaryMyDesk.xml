@@ -15,28 +15,26 @@
  limitations under the License.
 
 -->
-<ui-menu xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>4e72875c-0825-4f46-b885-ad4d4050d9d7</uuid>
+    <uuid>140f5336-1b60-4ba7-9913-027f296ec3ce</uuid>
     <file-application>eFapsApp-ElectronicBilling</file-application>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>EBilling_MyDesk</name>
+        <name>EBilling_SummaryMyDesk</name>
         <access>
             <role>EBilling_Admin</role>
         </access>
-        <childs>
-            <child>EBilling_DocumentMyDesk</child>
-            <child>EBilling_SummaryMyDesk</child>
-            <child>EBilling_LogMyDesk</child>
-            <child>EBilling_KeystoreMyDesk</child>
-        </childs>
-        <parents>
-            <parent>Sales_MyDesk</parent>
-        </parents>
+        <target>
+            <menu>EBilling_SummaryMyDesk_Menu</menu>
+            <table>EBilling_SummaryTable</table>
+            <evaluate program="org.efaps.esjp.common.uitable.MultiPrint">
+                <property name="Type">EBilling_Summary</property>
+            </evaluate>
+        </target>
         <property name="Target">content</property>
         <property name="TargetShowCheckBoxes">true</property>
         <property name="TargetMode">view</property>
         <property name="TargetTableType">GridX</property>
     </definition>
-</ui-menu>
+</ui-command>

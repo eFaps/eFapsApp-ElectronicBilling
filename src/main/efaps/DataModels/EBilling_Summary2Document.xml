@@ -15,28 +15,27 @@
  limitations under the License.
 
 -->
-<ui-menu xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<datamodel-type xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>4e72875c-0825-4f46-b885-ad4d4050d9d7</uuid>
+    <uuid>86c8bfc7-ee1e-4429-8f54-318184cb5116</uuid>
     <file-application>eFapsApp-ElectronicBilling</file-application>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>EBilling_MyDesk</name>
-        <access>
-            <role>EBilling_Admin</role>
-        </access>
-        <childs>
-            <child>EBilling_DocumentMyDesk</child>
-            <child>EBilling_SummaryMyDesk</child>
-            <child>EBilling_LogMyDesk</child>
-            <child>EBilling_KeystoreMyDesk</child>
-        </childs>
-        <parents>
-            <parent>Sales_MyDesk</parent>
-        </parents>
-        <property name="Target">content</property>
-        <property name="TargetShowCheckBoxes">true</property>
-        <property name="TargetMode">view</property>
-        <property name="TargetTableType">GridX</property>
+        <name>EBilling_Summary2Document</name>
+        <parent>EBilling_Object2Object</parent>
+         <attribute>
+            <name>FromLink</name>
+            <type>Link</type>
+            <typelink>EBilling_Summary</typelink>
+            <sqltable>EBilling_Object2ObjectSQLTable</sqltable>
+            <sqlcolumn>FROMID</sqlcolumn>
+        </attribute>
+         <attribute>
+            <name>ToLink</name>
+            <type>Link</type>
+            <typelink>EBilling_DocumentAbstract</typelink>
+            <sqltable>EBilling_Object2ObjectSQLTable</sqltable>
+            <sqlcolumn>TOID</sqlcolumn>
+        </attribute>
     </definition>
-</ui-menu>
+</datamodel-type>
