@@ -23,13 +23,19 @@
         <version-expression>(version==latest)</version-expression>
         <name>EBilling_Summary2DocumentTable</name>
         <field name="docType">
+            <property name="SelectAlternateOID">linkto[ToLink].oid</property>
             <property name="Select">linkto[ToLink].type.label</property>
             <property name="Label">EBilling_DocumentAbstract/Type.Label</property>
             <property name="UIProvider">org.efaps.admin.datamodel.ui.StringUI</property>
+            <property name="HRef">TREE</property>
         </field>
         <field name="identifier">
             <property name="Select">linkto[ToLink].attribute[Identifier]</property>
             <property name="Label">EBilling_DocumentAbstract/Identifier.Label</property>
+        </field>
+        <field name="docDate">
+            <property name="Select">linkto[ToLink].linkto[DocumentLinkAbstract].attribute[Date]</property>
+            <property name="Label">Sales_DocumentAbstract/Date.Label</property>
         </field>
         <field name="status">
             <property name="Select">linkto[ToLink].attribute[StatusAbstract]</property>

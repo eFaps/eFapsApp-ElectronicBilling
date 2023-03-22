@@ -251,7 +251,7 @@ public abstract class UBLService_Base
         return ret;
     }
 
-    protected Supplier getSupplier()
+    public Supplier getSupplier()
         throws EFapsException
     {
         final var ret = new Supplier();
