@@ -17,6 +17,7 @@
 package org.efaps.esjp.electronicbilling;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -27,14 +28,18 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.efaps.admin.datamodel.Dimension;
+import org.efaps.admin.datamodel.Type;
 import org.efaps.admin.event.Parameter;
 import org.efaps.admin.event.Return;
 import org.efaps.admin.event.Return.ReturnValues;
 import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
+import org.efaps.db.Checkin;
 import org.efaps.db.Checkout;
 import org.efaps.db.Instance;
 import org.efaps.eql.EQL;
@@ -65,6 +70,7 @@ import org.efaps.ubl.documents.Line;
 import org.efaps.ubl.documents.Supplier;
 import org.efaps.ubl.dto.SignResponseDto;
 import org.efaps.util.EFapsException;
+import org.efaps.util.UUIDUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,10 +96,39 @@ public abstract class UBLService_Base
         final Instance docInstance = eval.get("docInstance");
         if (InstanceUtils.isType(docInstance, CISales.Invoice)) {
             final var file = ceateInvoice(docInstance);
+            checkInUBLFile(_parameter, docInstance, file);
             ret.put(ReturnValues.VALUES, file);
             ret.put(ReturnValues.TRUE, true);
         }
         return ret;
+    }
+
+    protected void checkInUBLFile(Parameter _parameter,
+                                  Instance eDocInst,
+                                  File file)
+        throws EFapsException
+    {
+        final var ublFileTypeStr = ElectronicBilling.UBL_FILETYPE.get();
+        if (StringUtils.isNotEmpty(ublFileTypeStr)) {
+            Type ublFileType;
+            if (UUIDUtil.isUUID(ublFileTypeStr)) {
+                ublFileType = Type.get(UUID.fromString(ublFileTypeStr));
+            } else {
+                ublFileType = Type.get(ublFileTypeStr);
+            }
+            final var fileInst = EQL.builder()
+                            .insert(ublFileType)
+                            .set(CIEBilling.UBLFileAbstract.DocumentLinkAbstract, eDocInst)
+                            .stmt()
+                            .execute();
+            try {
+                final var is = new FileInputStream(file);
+                final var checkin = new Checkin(fileInst);
+                checkin.execute("EInvoice.xml", is, is.available());
+            } catch (final IOException e) {
+                LOG.error("Catched", e);
+            }
+        }
     }
 
     public File ceateInvoice(final Instance docInstance)

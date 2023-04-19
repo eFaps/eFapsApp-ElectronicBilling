@@ -298,6 +298,18 @@ public final class ElectronicBilling
                     .key(ElectronicBilling.BASE + "Summary.Sequence")
                     .defaultValue(CINumGenEBilling.SummarySequence.uuid.toString());
 
+    @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute UBL_ACTIVE = new BooleanSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "ubl.Active")
+                    .defaultValue(false);
+
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute UBL_FILETYPE = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "ubl.FileType")
+                    .description("Tax Mapping");
+
     /**
      * @return the SystemConfigruation for Sales
      * @throws CacheReloadException on error

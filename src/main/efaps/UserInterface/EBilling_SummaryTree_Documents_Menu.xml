@@ -18,7 +18,7 @@
 <ui-menu xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
     <uuid>c536f6e5-4221-4162-bee1-392102f5a553</uuid>
-    <file-application>eFapsApp-Products</file-application>
+    <file-application>eFapsApp-ElectronicBilling</file-application>
     <definition>
         <version-expression>(version==latest)</version-expression>
         <name>EBilling_SummaryTree_Documents_Menu</name>
