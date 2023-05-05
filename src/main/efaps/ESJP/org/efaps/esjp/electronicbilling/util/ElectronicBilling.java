@@ -52,7 +52,11 @@ public final class ElectronicBilling
                                     CIEBilling.CreditNoteStatus.Pending.key)
                     .addDefaultValue(CISales.Reminder.getType().getName(), CIEBilling.Reminder.getType().getName())
                     .addDefaultValue(CIEBilling.Reminder.getType().getName() + ".CreateStatus",
-                                    CIEBilling.ReminderStatus.Pending.key);
+                                    CIEBilling.ReminderStatus.Pending.key)
+                    .addDefaultValue(CISales.DeliveryNote.getType().getName(),
+                                    CIEBilling.DeliveryNote.getType().getName())
+                    .addDefaultValue(CIEBilling.DeliveryNote.getType().getName() + ".CreateStatus",
+                                    CIEBilling.DeliveryNoteStatus.Pending.key);
 
     /** See description. */
     @EFapsSysConfAttribute
@@ -88,6 +92,37 @@ public final class ElectronicBilling
                     .key(ElectronicBilling.BASE + "ActivateMailing")
                     .description("Activate the evaluation for mails.")
                     .defaultValue(false);
+
+
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute DELIVERYNOTE_CREATEONSTATUS = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "DeliveryNote.CreateOnStatusChange")
+                    .description("Activate the mechanism to create the electronic billing document on status change")
+                    .defaultValue(CISales.DeliveryNoteStatus.Closed.key);
+
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute DELIVERYNOTE_ACTIVE = new BooleanSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "DeliveryNote.Activate")
+                    .description("Activate DeliveryNote")
+                    .defaultValue(true);
+
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute DELIVERYNOTE_CREATEREPORT= new BooleanSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "DeliveryNote.CreateReport")
+                    .description("Activate the creation of the Report for DeliveryNote")
+                    .defaultValue(true);
+
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final PropertiesSysConfAttribute DELIVERYNOTE_VERIFY= new PropertiesSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "DeliveryNote.Verification")
+                    .description("Properties that permit to define when an Electronic DeliveryNote should be aborted.");
 
     /** See description. */
     @EFapsSysConfAttribute

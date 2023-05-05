@@ -48,6 +48,7 @@ import org.efaps.esjp.db.InstanceUtils;
 import org.efaps.esjp.electronicbilling.listener.IOnDocument;
 import org.efaps.esjp.electronicbilling.util.ElectronicBilling;
 import org.efaps.esjp.sales.document.CreditNote;
+import org.efaps.esjp.sales.document.DeliveryNote;
 import org.efaps.esjp.sales.document.Invoice;
 import org.efaps.esjp.sales.document.Receipt;
 import org.efaps.esjp.sales.document.Reminder;
@@ -121,8 +122,9 @@ public abstract class EBillingDocument_Base
         if (InstanceUtils.isType(_docInst, CISales.CreditNote) && ElectronicBilling.CREDITNOTE_ACTIVE.get()
                         || InstanceUtils.isType(_docInst, CISales.Invoice) && ElectronicBilling.INVOICE_ACTIVE.get()
                         || InstanceUtils.isType(_docInst, CISales.Receipt) && ElectronicBilling.RECEIPT_ACTIVE.get()
-                        || InstanceUtils.isType(_docInst, CISales.Reminder) && ElectronicBilling.REMINDER_ACTIVE
-                                        .get()) {
+                        || InstanceUtils.isType(_docInst, CISales.Reminder) && ElectronicBilling.REMINDER_ACTIVE.get()
+                        || InstanceUtils.isType(_docInst, CISales.DeliveryNote)
+                            && ElectronicBilling.DELIVERYNOTE_ACTIVE.get()) {
             final Properties docProps = ElectronicBilling.DOCMAPPING.get();
             final String typeName = _docInst.getType().getName();
             final String typeUUID = _docInst.getType().getUUID().toString();
@@ -172,7 +174,9 @@ public abstract class EBillingDocument_Base
                         || InstanceUtils.isType(_elecDocInst, CIEBilling.Receipt)
                                         && ElectronicBilling.RECEIPT_VERIFY.exists()
                         || InstanceUtils.isType(_elecDocInst, CIEBilling.Reminder) && ElectronicBilling.REMINDER_VERIFY
-                                        .exists()) {
+                                        .exists()
+                        || InstanceUtils.isType(_elecDocInst, CIEBilling.DeliveryNote)
+                            && ElectronicBilling.DELIVERYNOTE_VERIFY.exists()) {
             Properties props = null;
             if (InstanceUtils.isType(_elecDocInst, CIEBilling.Invoice)) {
                 props = ElectronicBilling.INVOICE_VERIFY.get();
@@ -182,6 +186,8 @@ public abstract class EBillingDocument_Base
                 props = ElectronicBilling.CREDITNOTE_VERIFY.get();
             } else if (InstanceUtils.isType(_elecDocInst, CIEBilling.Reminder)) {
                 props = ElectronicBilling.REMINDER_VERIFY.get();
+            } else if (InstanceUtils.isType(_elecDocInst, CIEBilling.DeliveryNote)) {
+                props = ElectronicBilling.DELIVERYNOTE_VERIFY.get();
             }
             if (props != null) {
                 boolean pass = true;
@@ -268,6 +274,15 @@ public abstract class EBillingDocument_Base
             ParameterUtil.setProperty(parameter, "JasperConfigMime", Sales.CREDITNOTE_MIME.getKey());
             ParameterUtil.setProperty(parameter, "Checkin", "true");
             new CreditNote().createReport(parameter);
+        }  else if (InstanceUtils.isType(_salesDocInst, CISales.DeliveryNote)
+                        && ElectronicBilling.DELIVERYNOTE_CREATEREPORT.get()) {
+
+            final Parameter parameter = ParameterUtil.clone(_parameter, ParameterValues.INSTANCE, _salesDocInst);
+            ParameterUtil.setProperty(parameter, "JasperConfig", Sales.getSysConfig().getUUID().toString());
+            ParameterUtil.setProperty(parameter, "JasperConfigReport", Sales.DELIVERYNOTE_JASPERREPORT.getKey());
+            ParameterUtil.setProperty(parameter, "JasperConfigMime", Sales.DELIVERYNOTE_MIME.getKey());
+            ParameterUtil.setProperty(parameter, "Checkin", "true");
+            new DeliveryNote().createReport(parameter);
         }
     }
 

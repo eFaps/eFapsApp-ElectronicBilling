@@ -59,6 +59,9 @@ public abstract class OnStatusChange_Base
         } else if (InstanceUtils.isType(_instance, CISales.CreditNote) && ElectronicBilling.CREDITNOTE_CREATEONSTATUS
                         .exists() && ElectronicBilling.CREDITNOTE_CREATEONSTATUS.get().equals(_status.getKey())) {
             this.createDocument(_parameter, _instance);
+        }  else if (InstanceUtils.isType(_instance, CISales.DeliveryNote) && ElectronicBilling.DELIVERYNOTE_CREATEONSTATUS
+                        .exists() && ElectronicBilling.DELIVERYNOTE_CREATEONSTATUS.get().equals(_status.getKey())) {
+            this.createDocument(_parameter, _instance);
         }
     }
 
