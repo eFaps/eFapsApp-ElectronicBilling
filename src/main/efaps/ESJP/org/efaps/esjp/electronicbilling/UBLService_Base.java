@@ -27,6 +27,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -214,8 +215,7 @@ public abstract class UBLService_Base
                             @Override
                             public List<IInstallment> getInstallments()
                             {
-                                // TODO
-                                return null;
+                                return Collections.emptyList();
                             }
                         });
         return ubl;
