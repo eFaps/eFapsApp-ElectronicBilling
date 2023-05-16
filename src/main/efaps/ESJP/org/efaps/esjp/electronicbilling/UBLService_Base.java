@@ -97,7 +97,7 @@ public abstract class UBLService_Base
         final Instance docInstance = eval.get("docInstance");
         if (InstanceUtils.isType(docInstance, CISales.Invoice)) {
             final var file = ceateInvoice(docInstance);
-            checkInUBLFile(_parameter, docInstance, file);
+            checkInUBLFile(_parameter, instance, file);
             ret.put(ReturnValues.VALUES, file);
             ret.put(ReturnValues.TRUE, true);
         }
