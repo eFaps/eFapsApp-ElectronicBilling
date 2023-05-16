@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?><!--
 
-  Copyright 2003 - 2016 The eFaps Team
+  Copyright 2003 - 2023 The eFaps Team
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -15,23 +15,16 @@
   limitations under the License.
 
 -->
-<ui-menu xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<ui-menu xmlns="http://www.efaps.org/xsd"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>20bfa37b-d1fb-4cee-af19-70cbca43c678</uuid>
+    <uuid>871c4f24-e9f6-4356-8f85-fa7204235227</uuid>
     <file-application>eFapsApp-ElectronicBilling</file-application>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>EBilling_DocumentAbstractTree_File</name>
-        <target>
-            <menu>EBilling_DocumentAbstractTree_File_Menu</menu>
-            <table>EBilling_FileTable</table>
-            <evaluate program="org.efaps.esjp.common.uitable.MultiPrint">
-                <property name="Type">EBilling_FileAbstract</property>
-                <property name="LinkFrom">DocumentLinkAbstract</property>
-            </evaluate>
-        </target>
-        <property name="Target">content</property>
-        <property name="TargetShowCheckBoxes">true</property>
-        <property name="TargetMode">view</property>
+        <name>EBilling_DocumentAbstractTree_File_Menu</name>
+        <childs>
+            <child>EBilling_DocumentAbstractTree_File_Menu_Action</child>
+        </childs>
     </definition>
 </ui-menu>

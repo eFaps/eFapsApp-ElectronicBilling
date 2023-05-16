@@ -25,6 +25,7 @@ import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
+import org.efaps.ubl.documents.IInstallment;
 
 @EFapsUUID("02ba44f6-3ad9-4d55-b94b-8c51262cd085")
 @EFapsApplication("eFapsApp-ElectronicBilling")
@@ -60,11 +61,13 @@ public class PaymentMethod
     }
 
     public static class Installment
+        implements IInstallment
     {
 
         private LocalDate dueDate;
         private BigDecimal amount;
 
+        @Override
         public LocalDate getDueDate()
         {
             return dueDate;
@@ -76,6 +79,7 @@ public class PaymentMethod
             return this;
         }
 
+        @Override
         public BigDecimal getAmount()
         {
             return amount;

@@ -27,9 +27,9 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -215,7 +215,9 @@ public abstract class UBLService_Base
                             @Override
                             public List<IInstallment> getInstallments()
                             {
-                                return Collections.emptyList();
+                                return paymentMethod.getInstallments().stream().map(installment -> {
+                                    return (IInstallment) installment;
+                                }).collect(Collectors.toList());
                             }
                         });
         return ubl;
