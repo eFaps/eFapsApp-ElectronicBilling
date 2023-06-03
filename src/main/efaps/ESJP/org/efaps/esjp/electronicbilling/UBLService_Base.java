@@ -34,12 +34,14 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.efaps.admin.datamodel.Dimension;
+import org.efaps.admin.datamodel.Status;
 import org.efaps.admin.datamodel.Type;
 import org.efaps.admin.event.Parameter;
 import org.efaps.admin.event.Return;
 import org.efaps.admin.event.Return.ReturnValues;
 import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
+import org.efaps.ci.CIType;
 import org.efaps.db.Checkin;
 import org.efaps.db.Checkout;
 import org.efaps.db.Instance;
@@ -70,6 +72,7 @@ import org.efaps.ubl.documents.Invoice;
 import org.efaps.ubl.documents.Line;
 import org.efaps.ubl.documents.Supplier;
 import org.efaps.ubl.dto.SignResponseDto;
+import org.efaps.ubl.reader.ApplicationResponseReader;
 import org.efaps.util.EFapsException;
 import org.efaps.util.UUIDUtil;
 import org.slf4j.Logger;
@@ -85,6 +88,75 @@ public abstract class UBLService_Base
 {
 
     private static final Logger LOG = LoggerFactory.getLogger(UBLService.class);
+
+    public void checkInApplicationResponse(final Instance eDocInst,
+                                           final File file)
+        throws EFapsException
+    {
+        final var fileTypeStr = ElectronicBilling.UBL_RESPONSE_FILETYPE.get();
+        if (StringUtils.isNotEmpty(fileTypeStr)) {
+            Type fileType;
+            if (UUIDUtil.isUUID(fileTypeStr)) {
+                fileType = Type.get(UUID.fromString(fileTypeStr));
+            } else {
+                fileType = Type.get(fileTypeStr);
+            }
+            final var fileInst = EQL.builder()
+                            .insert(fileType)
+                            .set(CIEBilling.ResponseFileAbstract.DocumentLinkAbstract, eDocInst)
+                            .stmt()
+                            .execute();
+            try {
+                final var is = new FileInputStream(file);
+                final var checkin = new Checkin(fileInst);
+                checkin.execute(file.getName(), is, is.available());
+            } catch (final IOException e) {
+                LOG.error("Catched", e);
+            }
+        }
+    }
+
+    public void evalApplicationResponse(final Instance eDocInst,
+                                        final File file,
+                                        final CIType logType)
+        throws EFapsException
+    {
+        final var reader = new ApplicationResponseReader();
+        final var appResponse = reader.read(file);
+        final var response = appResponse.getDocumentResponseAtIndex(0).getResponse();
+        final var responseCode = response.getResponseCodeValue();
+
+        if ("0".equals(responseCode)) {
+            final var status = Status.find(eDocInst.getType().getStatusAttribute().getLink().getUUID(), "Successful");
+            EQL.builder().update(eDocInst)
+                .set(CIEBilling.DocumentAbstract.StatusAbstract, status.getId())
+                .stmt()
+                .execute();
+        }
+
+        if (logType != null) {
+            final var description = response.getDescriptionAtIndex(0);
+
+            final var content = new StringBuilder()
+                            .append("ResponseCode: ").append(responseCode).append("\n")
+                            .append("Description: ").append(description.getValue()).append("\n");
+
+            response.getStatus().forEach((status) -> {
+                content.append("Status: ")
+                                .append(status.getStatusReasonCodeValue())
+                                .append(" ").append(status.getStatusReasonAtIndex(0).getValue())
+                                .append("\n");
+            });
+
+            EQL.builder()
+                            .insert(logType)
+                            .set(CIEBilling.LogAbstract.DocumentLinkAbstract, eDocInst)
+                            .set(CIEBilling.LogAbstract.Content, content)
+                            .stmt()
+                            .execute();
+        }
+    }
+
 
     public Return ceateUBL(final Parameter _parameter)
         throws EFapsException
@@ -104,9 +176,9 @@ public abstract class UBLService_Base
         return ret;
     }
 
-    protected void checkInUBLFile(Parameter _parameter,
-                                  Instance eDocInst,
-                                  File file)
+    protected void checkInUBLFile(final Parameter _parameter,
+                                  final Instance eDocInst,
+                                  final File file)
         throws EFapsException
     {
         final var ublFileTypeStr = ElectronicBilling.UBL_FILETYPE.get();
@@ -329,7 +401,8 @@ public abstract class UBLService_Base
         return ret;
     }
 
-    protected ArrayList<ILine> getLines(final Instance docInstance, final boolean freeOfCharge)
+    protected ArrayList<ILine> getLines(final Instance docInstance,
+                                        final boolean freeOfCharge)
         throws EFapsException
     {
         final var ret = new ArrayList<ILine>();
@@ -369,14 +442,17 @@ public abstract class UBLService_Base
                             .withAllowancesCharges(getCharges(taxes, true))
                             // CATALOGO Nr.16:
                             // 01 - Precio Unitario (incluye IGV),
-                            // 02 - Valor referencial unitario en operaciones no onerosas
+                            // 02 - Valor referencial unitario en operaciones no
+                            // onerosas
                             .withPriceType(freeOfCharge ? "02" : "01")
                             .build());
         }
         return ret;
     }
 
-    protected List<ITaxEntry> getTaxes(final Taxes taxes, final boolean isLine, final boolean freeOfCharge)
+    protected List<ITaxEntry> getTaxes(final Taxes taxes,
+                                       final boolean isLine,
+                                       final boolean freeOfCharge)
         throws EFapsException
     {
         final var ret = new ArrayList<ITaxEntry>();

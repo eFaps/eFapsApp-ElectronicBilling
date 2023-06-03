@@ -343,7 +343,13 @@ public final class ElectronicBilling
     public static final StringSysConfAttribute UBL_FILETYPE = new StringSysConfAttribute()
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
                     .key(ElectronicBilling.BASE + "ubl.FileType")
-                    .description("Tax Mapping");
+                    .description("FileType");
+
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute UBL_RESPONSE_FILETYPE = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "ubl.ResponseFileType")
+                    .description("ResponseFileType");
 
     /**
      * @return the SystemConfigruation for Sales
