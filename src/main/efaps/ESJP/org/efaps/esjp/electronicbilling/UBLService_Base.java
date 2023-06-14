@@ -61,6 +61,7 @@ import org.efaps.esjp.sales.tax.Tax_Base;
 import org.efaps.esjp.sales.tax.xml.Taxes;
 import org.efaps.ubl.Signing;
 import org.efaps.ubl.documents.AbstractDocument;
+import org.efaps.ubl.documents.CreditNote;
 import org.efaps.ubl.documents.Customer;
 import org.efaps.ubl.documents.IAllowanceChargeEntry;
 import org.efaps.ubl.documents.ICustomer;
@@ -70,6 +71,7 @@ import org.efaps.ubl.documents.IPaymentTerms;
 import org.efaps.ubl.documents.ITaxEntry;
 import org.efaps.ubl.documents.Invoice;
 import org.efaps.ubl.documents.Line;
+import org.efaps.ubl.documents.Reference;
 import org.efaps.ubl.documents.Supplier;
 import org.efaps.ubl.dto.SignResponseDto;
 import org.efaps.ubl.reader.ApplicationResponseReader;
@@ -168,7 +170,13 @@ public abstract class UBLService_Base
                         .evaluate();
         final Instance docInstance = eval.get("docInstance");
         if (InstanceUtils.isType(docInstance, CISales.Invoice)) {
-            final var file = ceateInvoice(docInstance);
+            final var file = createInvoice(docInstance);
+            checkInUBLFile(_parameter, instance, file);
+            ret.put(ReturnValues.VALUES, file);
+            ret.put(ReturnValues.TRUE, true);
+        }
+        if (InstanceUtils.isType(docInstance, CISales.CreditNote)) {
+            final var file = createCreditNote(docInstance);
             checkInUBLFile(_parameter, instance, file);
             ret.put(ReturnValues.VALUES, file);
             ret.put(ReturnValues.TRUE, true);
@@ -204,7 +212,7 @@ public abstract class UBLService_Base
         }
     }
 
-    public File ceateInvoice(final Instance docInstance)
+    public File createInvoice(final Instance docInstance)
         throws EFapsException
     {
         File file = null;
@@ -223,6 +231,25 @@ public abstract class UBLService_Base
             }
         };
         final var ubl = fill(docInstance, ublInvoice, freeOfCharge);
+        final var ublXml = ubl.getUBLXml();
+        LOG.info("UBL: {}", ublXml);
+        final var signResponse = sign(ublXml);
+        LOG.info("signResponse: Hash {}\n UBL {}", signResponse.getHash(), signResponse.getUbl());
+        try {
+            file = new FileUtil().getFile(ubl.getNumber(), "xml");
+            FileUtils.writeStringToFile(file, signResponse.getUbl(), StandardCharsets.UTF_8);
+        } catch (final IOException e) {
+            LOG.error("Catched", e);
+        }
+        return file;
+    }
+
+    public File createCreditNote(final Instance docInstance)
+        throws EFapsException
+    {
+        File file = null;
+        final var ublInvoice = new CreditNote();
+        final var ubl = fill(docInstance, ublInvoice, false);
         final var ublXml = ubl.getUBLXml();
         LOG.info("UBL: {}", ublXml);
         final var signResponse = sign(ublXml);
@@ -292,6 +319,23 @@ public abstract class UBLService_Base
                                 }).collect(Collectors.toList());
                             }
                         });
+
+        if (ubl instanceof CreditNote) {
+           final var refEval =  EQL.builder().print().query(CISales.CreditNote2Invoice, CISales.CreditNote2Receipt)
+                .where().attribute(CISales.Document2DocumentAbstract.FromAbstractLink).eq(docInstance)
+                .select()
+                .linkto(CISales.Document2DocumentAbstract.ToAbstractLink).instance().as("refInst")
+                .linkto(CISales.Document2DocumentAbstract.ToAbstractLink).attribute(CISales.DocumentAbstract.Name).as("name")
+                .linkto(CISales.Document2DocumentAbstract.ToAbstractLink).attribute(CISales.DocumentAbstract.Date).as("date")
+                .evaluate();
+           refEval.next();
+           final Instance refIns = refEval.get("refInst");
+           final var reference = new Reference()
+                            .setDocType(InstanceUtils.isKindOf(refIns, CISales.Invoice) ? "01" : "03")
+                            .setNumber(refEval.get("name"))
+                            .setDate(refEval.get("date"));
+            ((CreditNote) ubl).withReference(reference);
+        }
         return ubl;
     }
 

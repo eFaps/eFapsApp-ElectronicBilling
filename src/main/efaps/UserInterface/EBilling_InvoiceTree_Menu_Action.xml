@@ -23,9 +23,9 @@
         <version-expression>(version==latest)</version-expression>
         <name>EBilling_InvoiceTree_Menu_Action</name>
         <childs>
+            <child>EBilling_InvoiceTree_Menu_Action_CreateUBL</child>
             <child>EBilling_InvoiceTree_Menu_Action_Resend</child>
             <child>EBilling_InvoiceTree_Menu_Action_Cancel</child>
-            <child>EBilling_InvoiceTree_Menu_Action_CreateUBL</child>
             <child>EBilling_InvoiceTree_Menu_Action_SetSuccessful</child>
             <child>ERP_DocumentAbstractTree_Action_EditStatus</child>
         </childs>
