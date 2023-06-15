@@ -458,7 +458,7 @@ public abstract class UBLService_Base
                         .attribute(CISales.PositionSumAbstract.DocumentAbstractLink).eq(docInstance)
                         .select()
                         .attribute(CISales.PositionSumAbstract.Quantity, CISales.PositionSumAbstract.ProductDesc,
-                                        CISales.PositionSumAbstract.RateNetUnitPrice,
+                                        CISales.PositionSumAbstract.RateDiscountNetUnitPrice,
                                         CISales.PositionSumAbstract.RateCrossUnitPrice,
                                         CISales.PositionSumAbstract.RateCrossPrice,
                                         CISales.PositionSumAbstract.RateNetPrice,
@@ -477,7 +477,7 @@ public abstract class UBLService_Base
                             .withSku(eval.get("prodName"))
                             .withDescription(eval.get(CISales.PositionSumAbstract.ProductDesc))
                             .withNetUnitPrice(freeOfCharge ? BigDecimal.ZERO
-                                            : eval.get(CISales.PositionSumAbstract.RateNetUnitPrice))
+                                            : eval.get(CISales.PositionSumAbstract.RateDiscountNetUnitPrice))
                             .withCrossUnitPrice(eval.get(CISales.PositionSumAbstract.RateCrossUnitPrice))
                             .withNetPrice(eval.get(CISales.PositionSumAbstract.RateNetPrice))
                             .withCrossPrice(eval.get(CISales.PositionSumAbstract.RateCrossPrice))
