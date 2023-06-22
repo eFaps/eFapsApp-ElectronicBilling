@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--
+
+  Copyright 2003 - 2023 The eFaps Team
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+-->
+<ui-command xmlns="http://www.efaps.org/xsd"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
+    <uuid>7e061d65-1ee6-446a-a889-26fbd138e628</uuid>
+    <file-application>eFapsApp-ElectronicBilling</file-application>
+    <definition>
+        <version-expression>(version==latest)</version-expression>
+        <name>EBilling_Sales_DeliveryNoteTree_Menu_Action_CreateEDeliveryNote</name>
+        <access>
+            <role>EBilling_Admin</role>
+        </access>
+        <target>
+            <execute method="createDocument"
+                program="org.efaps.esjp.electronicbilling.EBillingDocument">
+            </execute>
+            <trigger name="EBilling_Sales_DeliveryNoteTree_Menu_Action_CreateEDeliveryNote.UI_ACCESSCHECK.1"
+                event="UI_ACCESSCHECK"
+                program="org.efaps.esjp.admin.access.AccessCheck4UI"
+                method="configCheck">
+                <!-- ElectronicBilling-Configuration -->
+                <property name="SystemConfig">451e21b9-27ff-4378-adfa-a578a9ba0b51</property>
+                <property name="Attribute">org.efaps.electronicbilling.DeliveryNote.Activate</property>
+            </trigger>
+            <trigger name="EBilling_Sales_DeliveryNoteTree_Menu_Action_CreateEDeliveryNote.UI_ACCESSCHECK.2"
+                event="UI_ACCESSCHECK"
+                program="org.efaps.esjp.admin.access.AccessCheck4UI"
+                method="configCheck">
+                <!-- ElectronicBilling-Configuration -->
+                <property name="SystemConfig">451e21b9-27ff-4378-adfa-a578a9ba0b51</property>
+                <property name="AttributeExists">!org.efaps.electronicbilling.DeliveryNote.CreateOnStatusChange</property>
+            </trigger>
+        </target>
+        <parents>
+            <parent>Sales_DeliveryNoteTree_Menu_Action</parent>
+        </parents>
+        <property name="AskUser">true</property>
+    </definition>
+</ui-command>
