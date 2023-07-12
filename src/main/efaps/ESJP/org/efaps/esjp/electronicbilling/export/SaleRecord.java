@@ -31,6 +31,7 @@ import org.efaps.dataexporter.model.LineNumberColumn;
 import org.efaps.dataexporter.model.StringColumn;
 import org.efaps.dataexporter.output.csv.CsvExportOptions;
 import org.efaps.dataexporter.output.csv.CsvExporter;
+import org.efaps.db.Instance;
 import org.efaps.eql.EQL;
 import org.efaps.esjp.ci.CIContacts;
 import org.efaps.esjp.ci.CIEBilling;
@@ -38,6 +39,7 @@ import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.common.file.FileUtil;
 import org.efaps.esjp.data.columns.export.FrmtDateTimeColumn;
 import org.efaps.esjp.data.columns.export.FrmtNumberColumn;
+import org.efaps.esjp.db.InstanceUtils;
 import org.efaps.esjp.erp.CurrencyInst;
 import org.efaps.esjp.sales.tax.xml.TaxEntry;
 import org.efaps.esjp.sales.tax.xml.Taxes;
@@ -89,16 +91,15 @@ public class SaleRecord
         exporter.addColumns(new StringColumn("empty", "PERCEPCIÓN", 3));
         exporter.addColumns(new FrmtNumberColumn("crossTotal", 10, 2).withTitle("TOTAL"));
 
-        /**
-         * exporter.addColumns(new FrmtColumn("SUB", 6));
-         * exporter.addColumns(new FrmtColumn("COSTO", 8));
-         * exporter.addColumns(new FrmtColumn("CTACBLE", 10));
-         * exporter.addColumns(new FrmtColumn("TDOC REF", 20));
-         * exporter.addColumns(new FrmtColumn("NUMERO REF", 20));
-         * exporter.addColumns(new FrmtColumn("FECHA REF", 20));
-         * exporter.addColumns(new FrmtColumn("IGV REF", 20));
-         * exporter.addColumns(new FrmtColumn("BASE IMP REF", 20));
-         **/
+        exporter.addColumns(new StringColumn("empty", "SUB", 3));
+        exporter.addColumns(new StringColumn("empty", "COSTO", 3));
+        exporter.addColumns(new StringColumn("empty", "CTACBLE", 3));
+        exporter.addColumns(new StringColumn("empty", "GLOSA", 3));
+        exporter.addColumns(new StringColumn("empty", "TDOC REF", 3));
+        exporter.addColumns(new StringColumn("empty", "NUMERO REF", 3));
+        exporter.addColumns(new StringColumn("empty", "FECHA REF", 3));
+        exporter.addColumns(new StringColumn("empty", "IGV REF", 3));
+        exporter.addColumns(new StringColumn("empty", "BASE IMP REF", 3));
     }
 
     protected void fill(final DataExporter exporter)
@@ -114,7 +115,6 @@ public class SaleRecord
                         .attribute(CISales.DocumentSumAbstract.Name).as("name")
                         .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
                         .attribute(CISales.DocumentSumAbstract.RateCurrencyId).as("rateCurrencyId")
-
                         .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
                         .linkto(CISales.DocumentSumAbstract.Contact)
                         .clazz(CIContacts.ClassOrganisation).attribute(CIContacts.ClassOrganisation.TaxNumber)
@@ -148,7 +148,7 @@ public class SaleRecord
             final var dataBean = new DataBean()
                             .setDate(eval.get("date"))
                             .setDueDate(dueDate == null ? null : dueDate)
-                            .setType("")
+                            .setType(evalType(eval.inst()))
                             .setName(eval.get("name"))
                             .setCurrency(currencyInst.getSymbol())
                             .setDoi(doi)
@@ -158,6 +158,16 @@ public class SaleRecord
                             .setCrossTotal(eval.get("rateCrossTotal"));
             exporter.addBeanRows(dataBean);
         }
+    }
+
+    protected String evalType(final Instance eDocIns) {
+        String ret = "01";
+        if (InstanceUtils.isType(eDocIns, CIEBilling.Receipt)) {
+            ret = "03";
+        } else if (InstanceUtils.isType(eDocIns, CIEBilling.CreditNote)) {
+            ret = "07";
+        }
+        return ret;
     }
 
     public static class DataBean
