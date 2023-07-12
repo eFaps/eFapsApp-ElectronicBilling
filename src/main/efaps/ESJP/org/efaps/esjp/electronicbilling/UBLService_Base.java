@@ -340,6 +340,7 @@ public abstract class UBLService_Base
                             .setNumber(refEval.get("name"))
                             .setDate(refEval.get("date"));
             ((CreditNote) ubl).withReference(reference);
+            ubl.withPaymentTerms(null);
         }
         return ubl;
     }
