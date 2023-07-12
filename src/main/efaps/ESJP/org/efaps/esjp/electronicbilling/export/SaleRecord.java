@@ -44,6 +44,7 @@ import org.efaps.esjp.db.InstanceUtils;
 import org.efaps.esjp.erp.CurrencyInst;
 import org.efaps.esjp.sales.tax.xml.TaxEntry;
 import org.efaps.esjp.sales.tax.xml.Taxes;
+import org.efaps.util.DateTimeUtil;
 import org.efaps.util.EFapsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +60,8 @@ public class SaleRecord
         throws EFapsException
     {
         final Return ret = new Return();
+        final var fromDate = DateTimeUtil.toDate(parameter.getParameterValue("from"));
+        final var toDate = DateTimeUtil.toDate(parameter.getParameterValue("to"));
         final CsvExportOptions options = new CsvExportOptions();
         options.setLineSeparator(LineSeparatorType.UNIX);
         options.setPrintHeaders(true);
@@ -67,7 +70,7 @@ public class SaleRecord
             final var writer = new FileWriterWithEncoding(file, "UTF-8");
             final var exporter = new CsvExporter(options, writer);
             addColumns(exporter);
-            fill(exporter);
+            fill(exporter, fromDate, toDate);
             ret.put(ReturnValues.VALUES, file);
             ret.put(ReturnValues.TRUE, true);
         } catch (final IOException | EFapsException e) {
@@ -105,10 +108,16 @@ public class SaleRecord
         exporter.addColumns(new StringColumn("refCrossTotal", "BASE IMP REF", 3));
     }
 
-    protected void fill(final DataExporter exporter)
+    protected void fill(final DataExporter exporter, LocalDate fromDate, LocalDate toDate)
         throws EFapsException
     {
         final var eval = EQL.builder().print().query(CIEBilling.Invoice, CIEBilling.Receipt, CIEBilling.CreditNote)
+                        .where()
+                            .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
+                                .attribute(CISales.DocumentAbstract.Date).greaterOrEq(fromDate.toString())
+                        .and()
+                            .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
+                                .attribute(CISales.DocumentAbstract.Date).lessOrEq(toDate.toString())
                         .select()
                         .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
                             .attribute(CISales.DocumentSumAbstract.Date).as("date")
