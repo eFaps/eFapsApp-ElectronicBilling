@@ -23,6 +23,7 @@ import java.time.LocalDate;
 import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.efaps.admin.event.Parameter;
 import org.efaps.admin.event.Return;
+import org.efaps.admin.event.Return.ReturnValues;
 import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
 import org.efaps.dataexporter.DataExporter;
@@ -57,6 +58,7 @@ public class SaleRecord
     public Return export(final Parameter parameter)
         throws EFapsException
     {
+        final Return ret = new Return();
         final CsvExportOptions options = new CsvExportOptions();
         options.setLineSeparator(LineSeparatorType.UNIX);
         options.setPrintHeaders(true);
@@ -66,10 +68,11 @@ public class SaleRecord
             final var exporter = new CsvExporter(options, writer);
             addColumns(exporter);
             fill(exporter);
+            ret.put(ReturnValues.VALUES, file);
+            ret.put(ReturnValues.TRUE, true);
         } catch (final IOException | EFapsException e) {
             LOG.error("Catched", e);
         }
-        final Return ret = new Return();
         return ret;
     }
 
@@ -86,20 +89,20 @@ public class SaleRecord
         exporter.addColumns(new FrmtNumberColumn("netTotal", 10, 2).withTitle("VALOR"));
         exporter.addColumns(new StringColumn("empty", "VENTA BOLSA", 3));
         exporter.addColumns(new StringColumn("empty", "EXONERADO", 3));
-        exporter.addColumns(new FrmtNumberColumn("igv", 10, 2).withTitle("IGV"));
+        exporter.addColumns(new FrmtNumberColumn("vat", 10, 2).withTitle("IGV"));
         exporter.addColumns(new StringColumn("empty", "ICBPER", 3));
         exporter.addColumns(new StringColumn("empty", "PERCEPCIÓN", 3));
         exporter.addColumns(new FrmtNumberColumn("crossTotal", 10, 2).withTitle("TOTAL"));
-
         exporter.addColumns(new StringColumn("empty", "SUB", 3));
         exporter.addColumns(new StringColumn("empty", "COSTO", 3));
         exporter.addColumns(new StringColumn("empty", "CTACBLE", 3));
-        exporter.addColumns(new StringColumn("empty", "GLOSA", 3));
-        exporter.addColumns(new StringColumn("empty", "TDOC REF", 3));
-        exporter.addColumns(new StringColumn("empty", "NUMERO REF", 3));
-        exporter.addColumns(new StringColumn("empty", "FECHA REF", 3));
-        exporter.addColumns(new StringColumn("empty", "IGV REF", 3));
-        exporter.addColumns(new StringColumn("empty", "BASE IMP REF", 3));
+        exporter.addColumns(new StringColumn("condition", "GLOSA", 3));
+
+        exporter.addColumns(new StringColumn("refType", "TDOC REF", 3));
+        exporter.addColumns(new StringColumn("refName", "NUMERO REF", 3));
+        exporter.addColumns(new StringColumn("refDate", "FECHA REF", 3));
+        exporter.addColumns(new StringColumn("refVAT", "IGV REF", 3));
+        exporter.addColumns(new StringColumn("refCrossTotal", "BASE IMP REF", 3));
     }
 
     protected void fill(final DataExporter exporter)
@@ -108,33 +111,38 @@ public class SaleRecord
         final var eval = EQL.builder().print().query(CIEBilling.Invoice, CIEBilling.Receipt, CIEBilling.CreditNote)
                         .select()
                         .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
-                        .attribute(CISales.DocumentSumAbstract.Date).as("date")
+                            .attribute(CISales.DocumentSumAbstract.Date).as("date")
                         .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
-                        .attribute(CISales.DocumentSumAbstract.DueDate).as("dueDate")
+                            .attribute(CISales.DocumentSumAbstract.DueDate).as("dueDate")
                         .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
-                        .attribute(CISales.DocumentSumAbstract.Name).as("name")
+                            .attribute(CISales.DocumentSumAbstract.Name).as("name")
                         .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
-                        .attribute(CISales.DocumentSumAbstract.RateCurrencyId).as("rateCurrencyId")
+                            .attribute(CISales.DocumentSumAbstract.RateCurrencyId).as("rateCurrencyId")
                         .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
-                        .linkto(CISales.DocumentSumAbstract.Contact)
-                        .clazz(CIContacts.ClassOrganisation).attribute(CIContacts.ClassOrganisation.TaxNumber)
-                        .as("taxNumber")
+                            .linkto(CISales.DocumentSumAbstract.Contact)
+                            .clazz(CIContacts.ClassOrganisation)
+                            .attribute(CIContacts.ClassOrganisation.TaxNumber).as("taxNumber")
                         .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
-                        .linkto(CISales.DocumentSumAbstract.Contact)
-                        .clazz(CIContacts.ClassPerson).attribute(CIContacts.ClassPerson.IdentityCard)
-                        .as("identityCard")
+                            .linkto(CISales.DocumentSumAbstract.Contact)
+                            .clazz(CIContacts.ClassPerson)
+                            .attribute(CIContacts.ClassPerson.IdentityCard).as("identityCard")
                         .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
-                        .linkto(CISales.DocumentSumAbstract.Contact)
-                        .attribute(CIContacts.Contact.Name).as("contactName")
+                            .linkto(CISales.DocumentSumAbstract.Contact)
+                            .attribute(CIContacts.Contact.Name).as("contactName")
                         .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
-                        .attribute(CISales.DocumentSumAbstract.RateNetTotal).as("rateNetTotal")
+                            .attribute(CISales.DocumentSumAbstract.RateNetTotal).as("rateNetTotal")
                         .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
-                        .attribute(CISales.DocumentSumAbstract.RateTaxes).as("rateTaxes")
+                            .attribute(CISales.DocumentSumAbstract.RateTaxes).as("rateTaxes")
                         .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
-                        .attribute(CISales.DocumentSumAbstract.RateCrossTotal).as("rateCrossTotal")
+                            .attribute(CISales.DocumentSumAbstract.RateCrossTotal).as("rateCrossTotal")
+                        .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
+                            .linkfrom(CISales.ChannelSalesCondition2DocumentAbstract.ToAbstractLink)
+                            .linkto(CISales.ChannelSalesCondition2DocumentAbstract.FromAbstractLink)
+                            .attribute(CISales.ChannelConditionAbstract.Name).first().as("condition")
                         .evaluate();
 
         while (eval.next()) {
+            final var eDocInst = eval.inst();
             final var currencyInst = CurrencyInst.get(eval.<Long>get("rateCurrencyId"));
             var doi = eval.<String>get("taxNumber");
             if (doi == null) {
@@ -143,28 +151,59 @@ public class SaleRecord
             final var dueDate = eval.<LocalDate>get("dueDate");
 
             final Taxes rateTaxes = eval.get("rateTaxes");
-            final var igv = rateTaxes.getEntries().stream().map(TaxEntry::getAmount).reduce(BigDecimal.ZERO,
+            final var vat = rateTaxes.getEntries().stream().map(TaxEntry::getAmount).reduce(BigDecimal.ZERO,
                             BigDecimal::add);
             final var dataBean = new DataBean()
                             .setDate(eval.get("date"))
                             .setDueDate(dueDate == null ? null : dueDate)
-                            .setType(evalType(eval.inst()))
+                            .setType(evalType(eDocInst))
                             .setName(eval.get("name"))
                             .setCurrency(currencyInst.getSymbol())
                             .setDoi(doi)
                             .setClient(eval.get("contactName"))
                             .setNetTotal(eval.get("rateNetTotal"))
-                            .setIgv(igv)
-                            .setCrossTotal(eval.get("rateCrossTotal"));
+                            .setVat(vat)
+                            .setCrossTotal(eval.get("rateCrossTotal"))
+                            .setCondition(eval.get("condition"));
             exporter.addBeanRows(dataBean);
+
+            if (InstanceUtils.isType(eDocInst, CIEBilling.CreditNote)) {
+                final var refEval = EQL.builder().print().query(CISales.CreditNote2Invoice, CISales.CreditNote2Receipt)
+                                .where().attribute(CISales.Document2DocumentAbstract.FromAbstractLink).eq(eDocInst)
+                                .select()
+                                .linkto(CISales.Document2DocumentAbstract.ToAbstractLink).instance().as("refInst")
+                                .linkto(CISales.Document2DocumentAbstract.ToAbstractLink)
+                                .attribute(CISales.DocumentAbstract.Name).as("name")
+                                .linkto(CISales.Document2DocumentAbstract.ToAbstractLink)
+                                .attribute(CISales.DocumentAbstract.Date).as("date")
+                                .linkto(CISales.Document2DocumentAbstract.ToAbstractLink)
+                                .attribute(CISales.DocumentSumAbstract.RateCrossTotal).as("rateCrossTotal")
+                                .linkto(CISales.Document2DocumentAbstract.ToAbstractLink)
+                                .attribute(CISales.DocumentSumAbstract.RateTaxes).as("rateTaxes")
+                                .evaluate();
+                refEval.next();
+                final Instance refIns = refEval.get("refInst");
+                if (InstanceUtils.isValid(refIns)) {
+                    final Taxes refRateTaxes = refEval.get("rateTaxes");
+                    final var refVat = refRateTaxes.getEntries().stream().map(TaxEntry::getAmount).reduce(BigDecimal.ZERO,
+                                    BigDecimal::add);
+                    dataBean.setRefType(evalType(refIns))
+                        .setRefDate(refEval.get("date"))
+                        .setRefName(refEval.get("name"))
+                        .setRefVAT(refVat)
+                        .setRefCrossTotal(refEval.get("rateCrossTotal"));
+                }
+            }
         }
     }
 
-    protected String evalType(final Instance eDocIns) {
+    protected String evalType(final Instance eDocIns)
+    {
         String ret = "01";
-        if (InstanceUtils.isType(eDocIns, CIEBilling.Receipt)) {
+        if (InstanceUtils.isType(eDocIns, CIEBilling.Receipt) || InstanceUtils.isType(eDocIns, CISales.Receipt)) {
             ret = "03";
-        } else if (InstanceUtils.isType(eDocIns, CIEBilling.CreditNote)) {
+        } else if (InstanceUtils.isType(eDocIns, CIEBilling.CreditNote)
+                        || InstanceUtils.isType(eDocIns, CISales.CreditNote)) {
             ret = "07";
         }
         return ret;
@@ -181,20 +220,90 @@ public class SaleRecord
         private String doi;
         private String client;
         private BigDecimal netTotal;
-        private BigDecimal igv;
-
+        private BigDecimal vat;
         private BigDecimal crossTotal;
-
+        private String refType;
+        private String refName;
+        private LocalDate refDate;
+        private BigDecimal refVAT;
+        private BigDecimal refCrossTotal;
+        private String condition;
         private String empty;
 
-        public BigDecimal getIgv()
+        public String getCondition()
         {
-            return igv;
+            return condition;
         }
 
-        public DataBean setIgv(BigDecimal igv)
+        public DataBean setCondition(String condition)
         {
-            this.igv = igv;
+            this.condition = condition;
+            return this;
+        }
+
+        public String getRefType()
+        {
+            return refType;
+        }
+
+        public DataBean setRefType(String refType)
+        {
+            this.refType = refType;
+            return this;
+        }
+
+        public String getRefName()
+        {
+            return refName;
+        }
+
+        public DataBean setRefName(String refName)
+        {
+            this.refName = refName;
+            return this;
+        }
+
+        public LocalDate getRefDate()
+        {
+            return refDate;
+        }
+
+        public DataBean setRefDate(LocalDate refDate)
+        {
+            this.refDate = refDate;
+            return this;
+        }
+
+        public BigDecimal getRefVAT()
+        {
+            return refVAT;
+        }
+
+        public DataBean setRefVAT(BigDecimal refVAT)
+        {
+            this.refVAT = refVAT;
+            return this;
+        }
+
+        public BigDecimal getRefCrossTotal()
+        {
+            return refCrossTotal;
+        }
+
+        public DataBean setRefCrossTotal(BigDecimal refCrossTotal)
+        {
+            this.refCrossTotal = refCrossTotal;
+            return this;
+        }
+
+        public BigDecimal getVat()
+        {
+            return vat;
+        }
+
+        public DataBean setVat(BigDecimal vat)
+        {
+            this.vat = vat;
             return this;
         }
 
