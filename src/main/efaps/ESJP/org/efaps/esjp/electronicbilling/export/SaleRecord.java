@@ -21,6 +21,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import org.apache.commons.io.output.FileWriterWithEncoding;
+import org.apache.commons.lang3.StringUtils;
 import org.efaps.admin.event.Parameter;
 import org.efaps.admin.event.Return;
 import org.efaps.admin.event.Return.ReturnValues;
@@ -103,7 +104,7 @@ public class SaleRecord
 
         exporter.addColumns(new StringColumn("refType", "TDOC REF", 3));
         exporter.addColumns(new StringColumn("refName", "NUMERO REF", 3));
-        exporter.addColumns(new StringColumn("refDate", "FECHA REF", 3));
+        exporter.addColumns(new FrmtDateTimeColumn("refDate", "FECHA REF", 10, "dd/MM/yyyy"));
         exporter.addColumns(new StringColumn("refVAT", "IGV REF", 3));
         exporter.addColumns(new StringColumn("refCrossTotal", "BASE IMP REF", 3));
     }
@@ -119,6 +120,7 @@ public class SaleRecord
                             .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
                                 .attribute(CISales.DocumentAbstract.Date).lessOrEq(toDate.toString())
                         .select()
+                        .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract).instance().as("docInst")
                         .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
                             .attribute(CISales.DocumentSumAbstract.Date).as("date")
                         .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
@@ -151,10 +153,11 @@ public class SaleRecord
                         .evaluate();
 
         while (eval.next()) {
+            final var docInst = eval.<Instance>get("docInst");
             final var eDocInst = eval.inst();
             final var currencyInst = CurrencyInst.get(eval.<Long>get("rateCurrencyId"));
             var doi = eval.<String>get("taxNumber");
-            if (doi == null) {
+            if (StringUtils.isEmpty(doi)) {
                 doi = eval.get("identityCard");
             }
             final var dueDate = eval.<LocalDate>get("dueDate");
@@ -174,11 +177,10 @@ public class SaleRecord
                             .setVat(vat)
                             .setCrossTotal(eval.get("rateCrossTotal"))
                             .setCondition(eval.get("condition"));
-            exporter.addBeanRows(dataBean);
 
             if (InstanceUtils.isType(eDocInst, CIEBilling.CreditNote)) {
                 final var refEval = EQL.builder().print().query(CISales.CreditNote2Invoice, CISales.CreditNote2Receipt)
-                                .where().attribute(CISales.Document2DocumentAbstract.FromAbstractLink).eq(eDocInst)
+                                .where().attribute(CISales.Document2DocumentAbstract.FromAbstractLink).eq(docInst)
                                 .select()
                                 .linkto(CISales.Document2DocumentAbstract.ToAbstractLink).instance().as("refInst")
                                 .linkto(CISales.Document2DocumentAbstract.ToAbstractLink)
@@ -194,8 +196,8 @@ public class SaleRecord
                 final Instance refIns = refEval.get("refInst");
                 if (InstanceUtils.isValid(refIns)) {
                     final Taxes refRateTaxes = refEval.get("rateTaxes");
-                    final var refVat = refRateTaxes.getEntries().stream().map(TaxEntry::getAmount).reduce(BigDecimal.ZERO,
-                                    BigDecimal::add);
+                    final var refVat = refRateTaxes.getEntries().stream().map(TaxEntry::getAmount)
+                                    .reduce(BigDecimal.ZERO, BigDecimal::add);
                     dataBean.setRefType(evalType(refIns))
                         .setRefDate(refEval.get("date"))
                         .setRefName(refEval.get("name"))
@@ -203,7 +205,12 @@ public class SaleRecord
                         .setRefCrossTotal(refEval.get("rateCrossTotal"));
                 }
             }
+            exporter.addBeanRows(dataBean);
         }
+    }
+
+    protected String evalDoi() {
+        return "";
     }
 
     protected String evalType(final Instance eDocIns)

@@ -351,6 +351,13 @@ public final class ElectronicBilling
                     .key(ElectronicBilling.BASE + "ubl.ResponseFileType")
                     .description("ResponseFileType");
 
+    @EFapsSysConfAttribute
+    public static final PropertiesSysConfAttribute EXPORT_SALERECORD = new PropertiesSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "export.SaleRecord")
+                    .description("Configuration for export SaleRecord\n");
+
+
     /**
      * @return the SystemConfigruation for Sales
      * @throws CacheReloadException on error
