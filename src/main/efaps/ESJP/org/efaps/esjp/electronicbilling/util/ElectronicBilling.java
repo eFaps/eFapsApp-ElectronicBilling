@@ -355,7 +355,10 @@ public final class ElectronicBilling
     public static final PropertiesSysConfAttribute EXPORT_SALERECORD = new PropertiesSysConfAttribute()
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
                     .key(ElectronicBilling.BASE + "export.SaleRecord")
-                    .description("Configuration for export SaleRecord\n");
+                    .addDefaultValue("UnnamedClientRegex", "(cliente.*various)|(various.*cliente)")
+                    .addDefaultValue("UnnamedClientValue", "0000")
+                    .description("Configuration for export SaleRecord\n"
+                                + "Regex4UnnamedClient:  Case insensitive Regex to mark client as 'Cliente various'");
 
 
     /**

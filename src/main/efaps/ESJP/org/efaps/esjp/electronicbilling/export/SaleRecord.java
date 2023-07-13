@@ -19,6 +19,7 @@ package org.efaps.esjp.electronicbilling.export;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.apache.commons.lang3.StringUtils;
@@ -189,6 +190,8 @@ public class SaleRecord
                             .setCrossTotal(eval.get("rateCrossTotal"))
                             .setCondition(eval.get("condition"));
 
+            evalUnnamedClient(dataBean);
+
             if (isCanceled) {
                 dataBean.setDoi("0001")
                     .setClient("FACTURAS ANULADAS")
@@ -251,11 +254,18 @@ public class SaleRecord
         dataBean.setLedger(ledger).setCostCenter(costCenter).setAccount(account);
     }
 
-    protected String evalDoi() {
-        return "";
+    protected void evalUnnamedClient(final DataBean dataBean)
+        throws EFapsException
+    {
+        final var properties = ElectronicBilling.EXPORT_SALERECORD.get();
+        final var regex = properties.getProperty("UnnamedClientRegex", "(cliente.*various)|(various.*cliente)");
+        final var value = properties.getProperty("UnnamedClientValue", "0000");
+        final Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+        final var matcher = pattern.matcher(dataBean.getClient());
+        if (matcher.matches()) {
+            dataBean.setClient(value);
+        }
     }
-
-
 
     protected String evalType(final Instance eDocIns)
     {
