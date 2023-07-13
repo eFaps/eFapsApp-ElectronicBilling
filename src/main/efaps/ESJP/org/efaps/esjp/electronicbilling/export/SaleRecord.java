@@ -121,6 +121,7 @@ public class SaleRecord
                             .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
                                 .attribute(CISales.DocumentAbstract.Date).lessOrEq(toDate.toString())
                         .select()
+                        .status().key().as("statusKey")
                         .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract).instance().as("docInst")
                         .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
                             .attribute(CISales.DocumentSumAbstract.Date).as("date")
@@ -161,6 +162,8 @@ public class SaleRecord
 
         final var eval = print.evaluate();
         while (eval.next()) {
+            final boolean isCanceled = "Canceled".equals(eval.get("statusKey"));
+
             final var docInst = eval.<Instance>get("docInst");
             final var eDocInst = eval.inst();
             final var currencyInst = CurrencyInst.get(eval.<Long>get("rateCurrencyId"));
@@ -185,6 +188,15 @@ public class SaleRecord
                             .setVat(vat)
                             .setCrossTotal(eval.get("rateCrossTotal"))
                             .setCondition(eval.get("condition"));
+
+            if (isCanceled) {
+                dataBean.setDoi("0001")
+                    .setClient("FACTURAS ANULADAS")
+                    .setNetTotal(null)
+                    .setVat(null)
+                    .setCrossTotal(null)
+                    .setCondition("ANULADO");
+            }
 
             if (true) {
                 final var depInst = eval.<Instance>get("depInst");
