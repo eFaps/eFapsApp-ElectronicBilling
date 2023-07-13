@@ -14,33 +14,24 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 
--->
-<ui-menu xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>4e72875c-0825-4f46-b885-ad4d4050d9d7</uuid>
+--><ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
+    <uuid>cf5dfa65-3fb6-44fe-a0cb-6d8e219b187e</uuid>
     <file-application>eFapsApp-ElectronicBilling</file-application>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>EBilling_MyDesk</name>
+        <name>EBilling_ReceiptMyDesk</name>
         <access>
             <role>EBilling_Admin</role>
         </access>
-        <childs>
-            <child>EBilling_DocumentMyDesk</child>
-            <child>EBilling_InvoiceMyDesk</child>
-            <child>EBilling_ReceiptMyDesk</child>
-            <child>EBilling_CreditNoteMyDesk</child>
-            <child>EBilling_DeliveryNoteMyDesk</child>
-            <child>EBilling_SummaryMyDesk</child>
-            <child>EBilling_LogMyDesk</child>
-            <child>EBilling_KeystoreMyDesk</child>
-        </childs>
-        <parents>
-            <parent>Sales_MyDesk</parent>
-        </parents>
+        <target>
+            <table>EBilling_ReceiptTable</table>
+            <evaluate program="org.efaps.esjp.common.uitable.MultiPrint">
+                <property name="Type">EBilling_Receipt</property>
+            </evaluate>
+        </target>
         <property name="Target">content</property>
         <property name="TargetShowCheckBoxes">true</property>
         <property name="TargetMode">view</property>
         <property name="TargetTableType">GridX</property>
     </definition>
-</ui-menu>
+</ui-command>
