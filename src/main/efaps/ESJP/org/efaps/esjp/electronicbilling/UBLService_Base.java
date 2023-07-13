@@ -274,16 +274,18 @@ public abstract class UBLService_Base
                         .attribute(CISales.DocumentSumAbstract.Name, CISales.DocumentSumAbstract.Taxes,
                                         CISales.DocumentSumAbstract.RateCurrencyId, CISales.DocumentSumAbstract.Date,
                                         CISales.DocumentSumAbstract.RateCrossTotal,
-                                        CISales.DocumentSumAbstract.RateNetTotal)
+                                        CISales.DocumentSumAbstract.RateNetTotal,
+                                        CISales.DocumentSumAbstract.CrossTotal)
                         .linkto(CISales.DocumentSumAbstract.Contact).instance().as("contactInstance")
                         .evaluate();
 
         final var taxes = eval.<Taxes>get(CISales.DocumentSumAbstract.Taxes);
         final Instance contactInstance = eval.get("contactInstance");
         final BigDecimal crossTotal = eval.get(CISales.DocumentSumAbstract.RateCrossTotal);
+        final BigDecimal baseCrossTotal = eval.get(CISales.DocumentSumAbstract.CrossTotal);
 
         final var allowancesCharges = getCharges(taxes, false);
-        evalRetention(allowancesCharges, contactInstance, crossTotal);
+        evalRetention(allowancesCharges, contactInstance, crossTotal, baseCrossTotal);
         allowancesCharges.addAll(getAllowances(docInstance));
 
         final var currencyInst = CurrencyInst.get(eval.<Long>get(CISales.DocumentSumAbstract.RateCurrencyId));
@@ -347,10 +349,11 @@ public abstract class UBLService_Base
 
     protected void evalRetention(final List<IAllowanceChargeEntry> allowancesCharges,
                                  final Instance contactInstance,
-                                 final BigDecimal crossTotal)
+                                 final BigDecimal rateCrossTotal,
+                                 final BigDecimal baseCrossTotal)
         throws EFapsException
     {
-        if (Sales.CLASSTAXINFOACTIVATE.get()) {
+        if (Sales.CLASSTAXINFOACTIVATE.get() && baseCrossTotal.compareTo(new BigDecimal("700")) > 0) {
             final var eval = EQL.builder().print(contactInstance)
                 .clazz(CISales.Contacts_ClassTaxinfo)
                 .attribute(CISales.Contacts_ClassTaxinfo.Retention).as("retention")
@@ -359,8 +362,8 @@ public abstract class UBLService_Base
                 final TaxRetention retention =  eval.get("retention");
                 if (retention != null && retention.equals(TaxRetention.AGENT)) {
                     allowancesCharges.add(AllowanceEntry.builder()
-                                    .withAmount(new BigDecimal("0.03").multiply(crossTotal))
-                                    .withBaseAmount(crossTotal)
+                                    .withAmount(new BigDecimal("0.03").multiply(rateCrossTotal))
+                                    .withBaseAmount(rateCrossTotal)
                                     //(Código de motivo de cargo/ descuento: Retención del IGV)
                                     .withReason("62")
                                     .withFactor(new BigDecimal("0.03"))
