@@ -37,11 +37,13 @@ import org.efaps.db.Instance;
 import org.efaps.eql.EQL;
 import org.efaps.esjp.ci.CIContacts;
 import org.efaps.esjp.ci.CIEBilling;
+import org.efaps.esjp.ci.CIHumanResource;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.common.file.FileUtil;
 import org.efaps.esjp.data.columns.export.FrmtDateTimeColumn;
 import org.efaps.esjp.data.columns.export.FrmtNumberColumn;
 import org.efaps.esjp.db.InstanceUtils;
+import org.efaps.esjp.electronicbilling.util.ElectronicBilling;
 import org.efaps.esjp.erp.CurrencyInst;
 import org.efaps.esjp.sales.tax.xml.TaxEntry;
 import org.efaps.esjp.sales.tax.xml.Taxes;
@@ -97,11 +99,10 @@ public class SaleRecord
         exporter.addColumns(new StringColumn("empty", "ICBPER", 3));
         exporter.addColumns(new StringColumn("empty", "PERCEPCIÓN", 3));
         exporter.addColumns(new FrmtNumberColumn("crossTotal", 10, 2).withTitle("TOTAL"));
-        exporter.addColumns(new StringColumn("empty", "SUB", 3));
-        exporter.addColumns(new StringColumn("empty", "COSTO", 3));
-        exporter.addColumns(new StringColumn("empty", "CTACBLE", 3));
+        exporter.addColumns(new StringColumn("ledger", "SUB", 3));
+        exporter.addColumns(new StringColumn("costCenter", "COSTO", 3));
+        exporter.addColumns(new StringColumn("account", "CTACBLE", 3));
         exporter.addColumns(new StringColumn("condition", "GLOSA", 3));
-
         exporter.addColumns(new StringColumn("refType", "TDOC REF", 3));
         exporter.addColumns(new StringColumn("refName", "NUMERO REF", 3));
         exporter.addColumns(new FrmtDateTimeColumn("refDate", "FECHA REF", 10, "dd/MM/yyyy"));
@@ -112,7 +113,7 @@ public class SaleRecord
     protected void fill(final DataExporter exporter, LocalDate fromDate, LocalDate toDate)
         throws EFapsException
     {
-        final var eval = EQL.builder().print().query(CIEBilling.Invoice, CIEBilling.Receipt, CIEBilling.CreditNote)
+        final var print = EQL.builder().print().query(CIEBilling.Invoice, CIEBilling.Receipt, CIEBilling.CreditNote)
                         .where()
                             .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
                                 .attribute(CISales.DocumentAbstract.Date).greaterOrEq(fromDate.toString())
@@ -149,9 +150,16 @@ public class SaleRecord
                         .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
                             .linkfrom(CISales.ChannelSalesCondition2DocumentAbstract.ToAbstractLink)
                             .linkto(CISales.ChannelSalesCondition2DocumentAbstract.FromAbstractLink)
-                            .attribute(CISales.ChannelConditionAbstract.Name).first().as("condition")
-                        .evaluate();
+                            .attribute(CISales.ChannelConditionAbstract.Name).first().as("condition");
+        //sysconf
+        if (true) {
+            print.linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
+                .linkfrom(CIHumanResource.Department2DocumentAbstract.ToAbstractLink)
+                .linkto(CIHumanResource.Department2DocumentAbstract.FromAbstractLink)
+                .instance().first().as("depInst");
+        }
 
+        final var eval = print.evaluate();
         while (eval.next()) {
             final var docInst = eval.<Instance>get("docInst");
             final var eDocInst = eval.inst();
@@ -177,6 +185,13 @@ public class SaleRecord
                             .setVat(vat)
                             .setCrossTotal(eval.get("rateCrossTotal"))
                             .setCondition(eval.get("condition"));
+
+            if (true) {
+                final var depInst = eval.<Instance>get("depInst");
+                if (InstanceUtils.isType(depInst, CIHumanResource.Department)) {
+                    evalDepartment(dataBean, depInst);
+                }
+            }
 
             if (InstanceUtils.isType(eDocInst, CIEBilling.CreditNote)) {
                 final var refEval = EQL.builder().print().query(CISales.CreditNote2Invoice, CISales.CreditNote2Receipt)
@@ -209,9 +224,26 @@ public class SaleRecord
         }
     }
 
+    protected void evalDepartment(final DataBean dataBean,
+                                  final Instance depInst)
+        throws EFapsException
+    {
+        final var properties = ElectronicBilling.EXPORT_SALERECORD.get();
+        final var ledger = properties.getProperty(depInst.getOid() + ".ledger",
+                        "Missing config: " + depInst.getOid() + ".ledger");
+        final var costCenter = properties.getProperty(depInst.getOid() + ".costCenter",
+                        "Missing config: " + depInst.getOid() + ".costCenter");
+        final var account = properties.getProperty(depInst.getOid() + ".account",
+                        "Missing config: " + depInst.getOid() + ".account");
+
+        dataBean.setLedger(ledger).setCostCenter(costCenter).setAccount(account);
+    }
+
     protected String evalDoi() {
         return "";
     }
+
+
 
     protected String evalType(final Instance eDocIns)
     {
@@ -245,6 +277,42 @@ public class SaleRecord
         private BigDecimal refCrossTotal;
         private String condition;
         private String empty;
+        private String ledger;
+        private String costCenter;
+        private String account;
+
+        public String getLedger()
+        {
+            return ledger;
+        }
+
+        public DataBean setLedger(String ledger)
+        {
+            this.ledger = ledger;
+            return this;
+        }
+
+        public String getCostCenter()
+        {
+            return costCenter;
+        }
+
+        public DataBean setCostCenter(String costCenter)
+        {
+            this.costCenter = costCenter;
+            return this;
+        }
+
+        public String getAccount()
+        {
+            return account;
+        }
+
+        public DataBean setAccount(String account)
+        {
+            this.account = account;
+            return this;
+        }
 
         public String getCondition()
         {
