@@ -19,8 +19,12 @@ package org.efaps.esjp.electronicbilling.export;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Pattern;
 
+import org.apache.commons.collections4.comparators.ComparatorChain;
 import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.efaps.admin.event.Parameter;
@@ -48,6 +52,7 @@ import org.efaps.esjp.electronicbilling.util.ElectronicBilling;
 import org.efaps.esjp.erp.CurrencyInst;
 import org.efaps.esjp.sales.tax.xml.TaxEntry;
 import org.efaps.esjp.sales.tax.xml.Taxes;
+import org.efaps.esjp.sales.util.Sales;
 import org.efaps.util.DateTimeUtil;
 import org.efaps.util.EFapsException;
 import org.slf4j.Logger;
@@ -114,6 +119,7 @@ public class SaleRecord
     protected void fill(final DataExporter exporter, LocalDate fromDate, LocalDate toDate)
         throws EFapsException
     {
+        final List<DataBean> beans = new ArrayList<>();
         final var print = EQL.builder().print().query(CIEBilling.Invoice, CIEBilling.Receipt, CIEBilling.CreditNote)
                         .where()
                             .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
@@ -234,9 +240,23 @@ public class SaleRecord
                         .setRefVAT(refVat)
                         .setRefCrossTotal(refEval.get("rateCrossTotal"));
                 }
+                if (Sales.CREDITNOTE_REASON.get()) {
+                    final var reasonEval = EQL.builder()
+                        .print(docInst)
+                            .linkto(CISales.CreditNote.CreditReason)
+                                .attribute(CISales.AttributeDefinitionCreditReason.Description)
+                        .evaluate();
+                    reasonEval.next();
+                    dataBean.setCondition(reasonEval.get(1));
+                }
             }
-            exporter.addBeanRows(dataBean);
+            beans.add(dataBean);
         }
+        final ComparatorChain<DataBean> chain = new ComparatorChain<>();
+        chain.addComparator((_o1, _o2) -> _o1.getType().compareTo(_o2.getType()));
+        chain.addComparator((_o1, _o2) -> _o1.getName().compareTo(_o2.getName()));
+        Collections.sort(beans, chain);
+        beans.forEach(dataBean -> {exporter.addBeanRows(dataBean);});
     }
 
     protected void evalDepartment(final DataBean dataBean,
@@ -258,12 +278,12 @@ public class SaleRecord
         throws EFapsException
     {
         final var properties = ElectronicBilling.EXPORT_SALERECORD.get();
-        final var regex = properties.getProperty("UnnamedClientRegex", "(cliente.*various)|(various.*cliente)");
+        final var regex = properties.getProperty("UnnamedClientRegex", "(cliente.*varios)|(varios.*cliente)");
         final var value = properties.getProperty("UnnamedClientValue", "0000");
         final Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
         final var matcher = pattern.matcher(dataBean.getClient());
         if (matcher.matches()) {
-            dataBean.setClient(value);
+            dataBean.setDoi(value);
         }
     }
 
