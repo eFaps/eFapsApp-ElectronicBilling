@@ -125,6 +125,13 @@ public final class ElectronicBilling
                     .description("Properties that permit to define when an Electronic DeliveryNote should be aborted.");
 
     @EFapsSysConfAttribute
+    public static final StringSysConfAttribute DELIVERYNOTE_ENDPOINTURI = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "DeliveryNote.EndpointURI")
+                    .defaultValue("https://api-cpe.sunat.gob.pe/v1/contribuyente/gem/comprobantes")
+                    .description("URI of the DeliveryNote endpoint.");
+
+    @EFapsSysConfAttribute
     public static final StringSysConfAttribute FISCUS_SSO_ENDPOINTURI = new StringSysConfAttribute()
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
                     .key(ElectronicBilling.BASE + "Fiscus.sso.EndpointURI")

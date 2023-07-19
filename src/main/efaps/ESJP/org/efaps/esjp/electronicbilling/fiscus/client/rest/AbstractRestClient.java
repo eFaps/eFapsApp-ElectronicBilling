@@ -25,7 +25,6 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
 import org.efaps.admin.program.esjp.EFapsApplication;
@@ -47,7 +46,6 @@ public class AbstractRestClient
 
     private static String ACCESSTOKEN;
     private static LocalDateTime ACCESSTOKENEXPIRES;
-
 
     protected Client getClient()
     {
@@ -72,12 +70,10 @@ public class AbstractRestClient
     protected void login()
         throws EFapsException
     {
-        final var client = getClient();
-        final var request = client.target(ElectronicBilling.FISCUS_SSO_ENDPOINTURI.get())
+        final var request = getClient().target(ElectronicBilling.FISCUS_SSO_ENDPOINTURI.get())
                         .path(ElectronicBilling.FISCUS_SSO_CLIENTID.get())
                         .path("/oauth2/token/")
-                        .request(MediaType.APPLICATION_FORM_URLENCODED)
-                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+                        .request(MediaType.APPLICATION_JSON);
 
         final var form = new Form()
                         .param("grant_type", "password")
@@ -91,6 +87,15 @@ public class AbstractRestClient
         {
         });
         ACCESSTOKEN = response.getAccessToken();
-        ACCESSTOKENEXPIRES = LocalDateTime.now().plusSeconds(response.getExpiresIn());
+        ACCESSTOKENEXPIRES = LocalDateTime.now().plusSeconds(response.getExpiresIn() - 10);
+    }
+
+    public String getToken()
+        throws EFapsException
+    {
+        if (ACCESSTOKENEXPIRES == null || !LocalDateTime.now().isBefore(ACCESSTOKENEXPIRES)) {
+            login();
+        }
+        return ACCESSTOKEN;
     }
 }
