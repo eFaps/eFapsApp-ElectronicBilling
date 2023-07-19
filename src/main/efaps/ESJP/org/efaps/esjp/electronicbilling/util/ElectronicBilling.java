@@ -124,6 +124,27 @@ public final class ElectronicBilling
                     .key(ElectronicBilling.BASE + "DeliveryNote.Verification")
                     .description("Properties that permit to define when an Electronic DeliveryNote should be aborted.");
 
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute DELIVERYNOTE_ENDPOINTURI = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "DeliveryNote.SoapEndpointURI")
+                    .defaultValue("https://e-beta.sunat.gob.pe/ol-ti-itemision-guia-gem-beta/billService")
+                    .description("URI of the SOAP to send to.");
+
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute DELIVERYNOTE_SOAPUSER = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "DeliveryNote.SoapUser")
+                    .defaultValue("20100066603MODDATOS")
+                    .description("Username for SOAP Service");
+
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute DELIVERYNOTE_SOAPPWD = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "DeliveryNote.SoapPassword")
+                    .defaultValue("moddatos")
+                    .description("Password for SOAP Service");
+
     /** See description. */
     @EFapsSysConfAttribute
     public static final StringSysConfAttribute INVOICE_CREATEONSTATUS = new StringSysConfAttribute()
@@ -359,6 +380,8 @@ public final class ElectronicBilling
                     .addDefaultValue("UnnamedClientValue", "0000")
                     .description("Configuration for export SaleRecord\n"
                                 + "Regex4UnnamedClient:  Case insensitive Regex to mark client as 'Cliente various'");
+
+
 
 
     /**
