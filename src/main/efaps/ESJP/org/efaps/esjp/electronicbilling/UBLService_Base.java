@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright 2003 - 2022 The eFaps Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,10 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -44,7 +47,9 @@ import org.efaps.admin.program.esjp.EFapsUUID;
 import org.efaps.ci.CIType;
 import org.efaps.db.Checkin;
 import org.efaps.db.Checkout;
+import org.efaps.db.Context;
 import org.efaps.db.Instance;
+import org.efaps.db.stmt.selection.Evaluator;
 import org.efaps.eql.EQL;
 import org.efaps.esjp.ci.CIContacts;
 import org.efaps.esjp.ci.CIEBilling;
@@ -63,17 +68,23 @@ import org.efaps.esjp.sales.util.Sales;
 import org.efaps.esjp.sales.util.Sales.TaxRetention;
 import org.efaps.ubl.Signing;
 import org.efaps.ubl.documents.AbstractDocument;
+import org.efaps.ubl.documents.Carrier;
 import org.efaps.ubl.documents.CreditNote;
 import org.efaps.ubl.documents.Customer;
+import org.efaps.ubl.documents.DeliveryNote;
 import org.efaps.ubl.documents.IAllowanceChargeEntry;
+import org.efaps.ubl.documents.ICarrier;
 import org.efaps.ubl.documents.ICustomer;
 import org.efaps.ubl.documents.IInstallment;
 import org.efaps.ubl.documents.ILine;
 import org.efaps.ubl.documents.IPaymentTerms;
 import org.efaps.ubl.documents.ITaxEntry;
 import org.efaps.ubl.documents.Invoice;
+import org.efaps.ubl.documents.ItemPropertyType;
 import org.efaps.ubl.documents.Line;
 import org.efaps.ubl.documents.Reference;
+import org.efaps.ubl.documents.Shipment;
+import org.efaps.ubl.documents.Stage;
 import org.efaps.ubl.documents.Supplier;
 import org.efaps.ubl.dto.SignResponseDto;
 import org.efaps.ubl.reader.ApplicationResponseReader;
@@ -183,6 +194,12 @@ public abstract class UBLService_Base
             ret.put(ReturnValues.VALUES, file);
             ret.put(ReturnValues.TRUE, true);
         }
+        if (InstanceUtils.isType(docInstance, CISales.DeliveryNote)) {
+            final var file = createDeliveryNote(docInstance);
+            checkInUBLFile(_parameter, instance, file);
+            ret.put(ReturnValues.VALUES, file);
+            ret.put(ReturnValues.TRUE, true);
+        }
         return ret;
     }
 
@@ -263,6 +280,119 @@ public abstract class UBLService_Base
             LOG.error("Catched", e);
         }
         return file;
+    }
+
+    public File createDeliveryNote(final Instance docInstance)
+        throws EFapsException
+    {
+        File file = null;
+        final var ublDeliveryNote = new DeliveryNote();
+        final var ubl = fillDeliveryNote(docInstance, ublDeliveryNote);
+        final var ublXml = ubl.getUBLXml();
+        LOG.info("UBL: {}", ublXml);
+        final var signResponse = sign(ublXml);
+        LOG.info("signResponse: Hash {}\n UBL {}", signResponse.getHash(), signResponse.getUbl());
+        try {
+            file = new FileUtil().getFile(ubl.getNumber(), "xml");
+            FileUtils.writeStringToFile(file, signResponse.getUbl(), StandardCharsets.UTF_8);
+        } catch (final IOException e) {
+            LOG.error("Catched", e);
+        }
+        return file;
+    }
+
+    protected DeliveryNote fillDeliveryNote(final Instance docInstance,
+                                            final DeliveryNote ubl) throws EFapsException
+    {
+        final var eval = EQL.builder().print(docInstance)
+                        .attribute(CISales.DeliveryNote.Name, CISales.DeliveryNote.Date, CISales.DeliveryNote.DueDate,
+                                        CISales.DeliveryNote.Created)
+                        .linkto(CISales.DocumentSumAbstract.Contact).instance().as("contactInstance")
+                        .linkto(CISales.DeliveryNote.TransferReason)
+                            .attribute(CISales.AttributeDefinitionTransferReason.MappingKey).as("transferReason")
+                        .linkto(CISales.DeliveryNote.TransferReason)
+                            .attribute(CISales.AttributeDefinitionTransferReason.Description).as("transferReasonDescr")
+                        .linkto(CISales.DeliveryNote.CarrierLink).instance().as("carrierInst")
+                        .evaluate();
+        final Instance contactInstance = eval.get("contactInstance");
+        final LocalDate date = eval.get(CISales.DocumentSumAbstract.Date);
+        final LocalDate dueDate = eval.get(CISales.DocumentSumAbstract.DueDate);
+        final OffsetDateTime created = eval.get(CISales.DocumentSumAbstract.Created);
+
+        final boolean thirdParty = !ERP.COMPANY_CONTACT.get().equals(eval.get("carrierInst"));
+
+        ubl.withNumber(eval.get(CISales.DeliveryNote.Name))
+            .withDate(thirdParty ? dueDate : date)
+            .withTime(evalTime(date, created))
+            .withSupplier(getSupplier())
+            .withCustomer(getCustomer(contactInstance))
+            .withLines(getDeliveryNoteLines(docInstance))
+            .withShipment(getShipment(eval, thirdParty));
+        return ubl;
+    }
+
+    protected Shipment getShipment(final Evaluator eval, final boolean thirdParty)
+        throws EFapsException
+    {
+        final var ret = new Shipment();
+
+        final var stage = new Stage()
+                        .withMode(thirdParty ? "01" : "02")
+                        .withCarrier(getCarrier(eval.get("carrierInst")));
+        ret.withHandlingCode(eval.get("transferReason"))
+            .withHandlingInstructions(eval.get("transferReasonDescr"))
+            .addStage(stage);
+
+        if (thirdParty) {
+            ret.addInstruction("SUNAT_Envio_IndicadorVehiculoConductoresTransp");
+        }
+        return ret;
+    }
+
+    protected List<ILine> getDeliveryNoteLines(final Instance docInstance)
+        throws EFapsException
+    {
+        final var ret = new ArrayList<ILine>();
+        final var eval = EQL.builder()
+                        .print()
+                        .query(CISales.DeliveryNotePosition)
+                        .where()
+                        .attribute(CISales.DeliveryNotePosition.DeliveryNote).eq(docInstance)
+                        .select()
+                        .attribute(CISales.DeliveryNotePosition.Quantity, CISales.DeliveryNotePosition.ProductDesc,
+                                        CISales.DeliveryNotePosition.PositionNumber, CISales.DeliveryNotePosition.UoM)
+                        .linkto(CISales.DeliveryNotePosition.Product).attribute(CIProducts.ProductAbstract.Name)
+                        .as("prodName")
+                        .orderBy(CISales.DeliveryNotePosition.PositionNumber)
+                        .evaluate();
+
+        while (eval.next()) {
+            final var uomId = eval.<Long>get(CISales.DeliveryNotePosition.UoM);
+            ret.add(Line.builder()
+                            .withQuantity(eval.get(CISales.PositionSumAbstract.Quantity))
+                            .withSku(eval.get("prodName"))
+                            .withDescription(eval.get(CISales.PositionSumAbstract.ProductDesc))
+                            .withUoMCode(Dimension.getUoM(uomId).getCommonCode())
+                            .withAdditionalItemProperties(Collections.singletonList(
+                                           () -> ItemPropertyType.NORMALIZED ))
+                            .build());
+        }
+        return ret;
+    }
+
+    protected LocalTime evalTime(final LocalDate date,
+                                 final OffsetDateTime created)
+        throws EFapsException
+    {
+        LocalTime ret;
+        final var zoneId = Context.getThreadContext().getZoneId();
+        final var currenDate = LocalDate.now(zoneId);
+        if (currenDate.equals(date)) {
+            ret = LocalTime.now(zoneId);
+        } else {
+            ret = created.atZoneSameInstant(zoneId).toLocalTime();
+        }
+        return ret;
     }
 
     protected AbstractDocument<?> fill(final Instance docInstance,
@@ -473,6 +603,32 @@ public abstract class UBLService_Base
             doiType = eval.<String>get("doiType");
         }
         final Customer ret = new Customer();
+        ret.setDOI(taxNumber == null ? identityCard : taxNumber);
+        ret.setDoiType(doiType);
+        ret.setName(eval.get(CIContacts.ContactAbstract.Name));
+        return ret;
+    }
+
+    protected ICarrier getCarrier(final Instance contactInstance)
+        throws EFapsException
+    {
+        final var eval = EQL.builder().print(contactInstance)
+                        .attribute(CIContacts.ContactAbstract.Name)
+                        .clazz(CIContacts.ClassOrganisation).attribute(CIContacts.ClassOrganisation.TaxNumber)
+                        .as("taxNumber")
+                        .clazz(CIContacts.ClassPerson).linkto(CIContacts.ClassPerson.DOITypeLink)
+                        .attribute(CIContacts.AttributeDefinitionDOIType.MappingKey).as("doiType")
+                        .clazz(CIContacts.ClassPerson).attribute(CIContacts.ClassPerson.IdentityCard).as("identityCard")
+                        .evaluate();
+        final var taxNumber = eval.<String>get("taxNumber");
+        final var identityCard = eval.<String>get("identityCard");
+        String doiType;
+        if (taxNumber != null) {
+            doiType = "6";
+        } else {
+            doiType = eval.<String>get("doiType");
+        }
+        final Carrier ret = new Carrier();
         ret.setDOI(taxNumber == null ? identityCard : taxNumber);
         ret.setDoiType(doiType);
         ret.setName(eval.get(CIContacts.ContactAbstract.Name));
