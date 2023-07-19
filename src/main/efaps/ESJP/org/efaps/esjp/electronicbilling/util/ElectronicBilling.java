@@ -125,25 +125,39 @@ public final class ElectronicBilling
                     .description("Properties that permit to define when an Electronic DeliveryNote should be aborted.");
 
     @EFapsSysConfAttribute
-    public static final StringSysConfAttribute DELIVERYNOTE_ENDPOINTURI = new StringSysConfAttribute()
+    public static final StringSysConfAttribute FISCUS_SSO_ENDPOINTURI = new StringSysConfAttribute()
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
-                    .key(ElectronicBilling.BASE + "DeliveryNote.SoapEndpointURI")
-                    .defaultValue("https://e-beta.sunat.gob.pe/ol-ti-itemision-guia-gem-beta/billService")
-                    .description("URI of the SOAP to send to.");
+                    .key(ElectronicBilling.BASE + "Fiscus.sso.EndpointURI")
+                    .defaultValue("https://api-seguridad.sunat.gob.pe/v1/clientessol")
+                    .description("URI of the Fiscus SSO.");
 
     @EFapsSysConfAttribute
-    public static final StringSysConfAttribute DELIVERYNOTE_SOAPUSER = new StringSysConfAttribute()
+    public static final StringSysConfAttribute FISCUS_SSO_CLIENTID = new StringSysConfAttribute()
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
-                    .key(ElectronicBilling.BASE + "DeliveryNote.SoapUser")
-                    .defaultValue("20100066603MODDATOS")
-                    .description("Username for SOAP Service");
+                    .key(ElectronicBilling.BASE + "Fiscus.sso.ClientId")
+                    .defaultValue("MISSING CONFIG")
+                    .description("Fiscus SSO CLientId");
 
     @EFapsSysConfAttribute
-    public static final StringSysConfAttribute DELIVERYNOTE_SOAPPWD = new StringSysConfAttribute()
+    public static final StringSysConfAttribute FISCUS_SSO_CLIENTSECRET = new StringSysConfAttribute()
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
-                    .key(ElectronicBilling.BASE + "DeliveryNote.SoapPassword")
-                    .defaultValue("moddatos")
-                    .description("Password for SOAP Service");
+                    .key(ElectronicBilling.BASE + "Fiscus.sso.ClientSecret")
+                    .defaultValue("MISSING CONFIG")
+                    .description("Fiscus SSO CLientId");
+
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute FISCUS_SSO_USERNAME = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Fiscus.sso.UserName")
+                    .defaultValue("MISSING CONFIG")
+                    .description("Fiscus SSO CLientId");
+
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute FISCUS_SSO_PWD = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Fiscus.sso.Password")
+                    .defaultValue("MISSING CONFIG")
+                    .description("Fiscus SSO CLientId");
 
     /** See description. */
     @EFapsSysConfAttribute
