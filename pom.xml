@@ -177,11 +177,6 @@
             <artifactId>jackson-jaxrs-xml-provider</artifactId>
             <version>${jackson.version}</version>
         </dependency>
-         <dependency>
-            <groupId>javax.xml.soap</groupId>
-            <artifactId>javax.xml.soap-api</artifactId>
-            <version>1.4.0</version>
-        </dependency>
         <dependency>
             <groupId>org.efaps</groupId>
             <artifactId>efaps-tests</artifactId>
