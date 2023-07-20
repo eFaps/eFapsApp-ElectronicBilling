@@ -194,6 +194,7 @@ public abstract class UBLService_Base
             ret.put(ReturnValues.VALUES, file);
             ret.put(ReturnValues.TRUE, true);
         }
+        LOG.info("instance {}", docInstance);
         if (InstanceUtils.isType(docInstance, CISales.DeliveryNote)) {
             final var file = createDeliveryNote(docInstance);
             checkInUBLFile(_parameter, instance, file);
@@ -304,6 +305,7 @@ public abstract class UBLService_Base
     protected DeliveryNote fillDeliveryNote(final Instance docInstance,
                                             final DeliveryNote ubl) throws EFapsException
     {
+        LOG.info("starting filling {}", docInstance);
         final var eval = EQL.builder().print(docInstance)
                         .attribute(CISales.DeliveryNote.Name, CISales.DeliveryNote.Date, CISales.DeliveryNote.DueDate,
                                         CISales.DeliveryNote.Created)
@@ -315,14 +317,14 @@ public abstract class UBLService_Base
                         .linkto(CISales.DeliveryNote.CarrierLink).instance().as("carrierInst")
                         .evaluate();
         final Instance contactInstance = eval.get("contactInstance");
-        final LocalDate date = eval.get(CISales.DocumentSumAbstract.Date);
-        final LocalDate dueDate = eval.get(CISales.DocumentSumAbstract.DueDate);
-        final OffsetDateTime created = eval.get(CISales.DocumentSumAbstract.Created);
+        final LocalDate date = eval.get(CISales.DeliveryNote.Date);
+        eval.get(CISales.DeliveryNote.DueDate);
+        final OffsetDateTime created = eval.get(CISales.DeliveryNote.Created);
 
         final boolean thirdParty = !ERP.COMPANY_CONTACT.get().equals(eval.get("carrierInst"));
 
         ubl.withNumber(eval.get(CISales.DeliveryNote.Name))
-            .withDate(thirdParty ? dueDate : date)
+            .withDate(date)
             .withTime(evalTime(date, created))
             .withSupplier(getSupplier())
             .withCustomer(getCustomer(contactInstance))
@@ -331,17 +333,20 @@ public abstract class UBLService_Base
         return ubl;
     }
 
-    protected Shipment getShipment(final Evaluator eval, final boolean thirdParty)
+    protected Shipment getShipment(final Evaluator eval,
+                                   final boolean thirdParty)
         throws EFapsException
     {
         final var ret = new Shipment();
 
         final var stage = new Stage()
                         .withMode(thirdParty ? "01" : "02")
-                        .withCarrier(getCarrier(eval.get("carrierInst")));
+                        .withCarrier(getCarrier(eval.get("carrierInst")))
+                        .withStartDate(thirdParty ? eval.get(CISales.DeliveryNote.DueDate)
+                                        : eval.get(CISales.DeliveryNote.Date));
         ret.withHandlingCode(eval.get("transferReason"))
-            .withHandlingInstructions(eval.get("transferReasonDescr"))
-            .addStage(stage);
+                        .withHandlingInstructions(eval.get("transferReasonDescr"))
+                        .addStage(stage);
 
         if (thirdParty) {
             ret.addInstruction("SUNAT_Envio_IndicadorVehiculoConductoresTransp");
