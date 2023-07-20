@@ -55,6 +55,7 @@ import org.efaps.esjp.ci.CIContacts;
 import org.efaps.esjp.ci.CIEBilling;
 import org.efaps.esjp.ci.CIProducts;
 import org.efaps.esjp.ci.CISales;
+import org.efaps.esjp.ci.CIUbicaciones;
 import org.efaps.esjp.common.file.FileUtil;
 import org.efaps.esjp.db.InstanceUtils;
 import org.efaps.esjp.electronicbilling.entities.AllowanceEntry;
@@ -68,25 +69,27 @@ import org.efaps.esjp.sales.util.Sales;
 import org.efaps.esjp.sales.util.Sales.TaxRetention;
 import org.efaps.ubl.Signing;
 import org.efaps.ubl.documents.AbstractDocument;
-import org.efaps.ubl.documents.Carrier;
 import org.efaps.ubl.documents.CreditNote;
-import org.efaps.ubl.documents.Customer;
 import org.efaps.ubl.documents.DeliveryNote;
-import org.efaps.ubl.documents.Driver;
-import org.efaps.ubl.documents.IAllowanceChargeEntry;
-import org.efaps.ubl.documents.ICarrier;
-import org.efaps.ubl.documents.ICustomer;
-import org.efaps.ubl.documents.IInstallment;
-import org.efaps.ubl.documents.ILine;
-import org.efaps.ubl.documents.IPaymentTerms;
-import org.efaps.ubl.documents.ITaxEntry;
 import org.efaps.ubl.documents.Invoice;
-import org.efaps.ubl.documents.ItemPropertyType;
-import org.efaps.ubl.documents.Line;
-import org.efaps.ubl.documents.Reference;
-import org.efaps.ubl.documents.Shipment;
-import org.efaps.ubl.documents.Stage;
-import org.efaps.ubl.documents.Supplier;
+import org.efaps.ubl.documents.elements.AdditionalItemProperty;
+import org.efaps.ubl.documents.elements.Carrier;
+import org.efaps.ubl.documents.elements.Customer;
+import org.efaps.ubl.documents.elements.Delivery;
+import org.efaps.ubl.documents.elements.Driver;
+import org.efaps.ubl.documents.elements.Line;
+import org.efaps.ubl.documents.elements.Reference;
+import org.efaps.ubl.documents.elements.Shipment;
+import org.efaps.ubl.documents.elements.Stage;
+import org.efaps.ubl.documents.elements.Supplier;
+import org.efaps.ubl.documents.interfaces.IAddress;
+import org.efaps.ubl.documents.interfaces.IAllowanceChargeEntry;
+import org.efaps.ubl.documents.interfaces.ICarrier;
+import org.efaps.ubl.documents.interfaces.ICustomer;
+import org.efaps.ubl.documents.interfaces.IInstallment;
+import org.efaps.ubl.documents.interfaces.ILine;
+import org.efaps.ubl.documents.interfaces.IPaymentTerms;
+import org.efaps.ubl.documents.interfaces.ITaxEntry;
 import org.efaps.ubl.dto.SignResponseDto;
 import org.efaps.ubl.reader.ApplicationResponseReader;
 import org.efaps.util.EFapsException;
@@ -225,7 +228,7 @@ public abstract class UBLService_Base
             try {
                 final var is = new FileInputStream(file);
                 final var checkin = new Checkin(fileInst);
-                checkin.execute("EInvoice.xml", is, is.available());
+                checkin.execute(file.getName(), is, is.available());
             } catch (final IOException e) {
                 LOG.error("Catched", e);
             }
@@ -316,6 +319,8 @@ public abstract class UBLService_Base
                         .linkto(CISales.DeliveryNote.TransferReason)
                         .attribute(CISales.AttributeDefinitionTransferReason.Description).as("transferReasonDescr")
                         .linkto(CISales.DeliveryNote.CarrierLink).instance().as("carrierInst")
+                        .linkto(CISales.DeliveryNote.DeparturePointLink).instance().as("departurePointInst")
+                        .linkto(CISales.DeliveryNote.ArrivalPointLink).instance().as("arrivalPointInst")
                         .evaluate();
         final Instance contactInstance = eval.get("contactInstance");
         final LocalDate date = eval.get(CISales.DeliveryNote.Date);
@@ -339,7 +344,6 @@ public abstract class UBLService_Base
         throws EFapsException
     {
         final var ret = new Shipment();
-
         final var stage = new Stage()
                         .withMode(thirdParty ? "01" : "02")
                         .withCarrier(getCarrier(eval.get("carrierInst")))
@@ -347,6 +351,7 @@ public abstract class UBLService_Base
                                         : eval.get(CISales.DeliveryNote.Date));
         ret.withHandlingCode(eval.get("transferReason"))
                         .withHandlingInstructions(eval.get("transferReasonDescr"))
+                        .withDelivery(getDelivery(eval))
                         .addStage(stage);
 
         if (thirdParty) {
@@ -354,6 +359,65 @@ public abstract class UBLService_Base
         }
         stage.withDriver(getDriver(eval.get(CISales.DeliveryNote.DriverLink)));
         return ret;
+    }
+
+    protected Delivery getDelivery(final Evaluator eval)
+        throws EFapsException
+    {
+        final var ret = new Delivery()
+                        .withDeliveryAddress(getAddress(eval, "arrivalPointInst"))
+                        .withDespatchAddress(getAddress(eval, "departurePointInst"));
+        return ret;
+    }
+
+    protected IAddress getAddress(final Evaluator eval,
+                                  final String key)
+        throws EFapsException
+    {
+        final Instance contactInstance = eval.get(key);
+        String address = null;
+        if (InstanceUtils.isKindOf(contactInstance, CIContacts.Contact)) {
+            final var locEval = EQL.builder().print().query(CIContacts.ClassLocation)
+                            .where().attribute(CIContacts.ClassLocation.ContactLink).eq(contactInstance)
+                            .select()
+                            .linkto(CIContacts.ClassLocation.DistrictLocationLink)
+                            .attribute(CIUbicaciones.UbicacionStandardRoot.Code).as("ubigeo")
+                            .attribute(CIContacts.ClassLocation.LocationAdressStreet,
+                                            CIContacts.ClassLocation.LocationAdressCity)
+                            .evaluate();
+            if (locEval.next()) {
+                address = locEval.get(CIContacts.ClassLocation.LocationAdressStreet) + " - "
+                            + locEval.get(CIContacts.ClassLocation.LocationAdressCity);
+            }
+        } else {
+            final var locEval = EQL.builder().print().query(CIContacts.SubContactClassLocation)
+                            .where().attribute(CIContacts.SubContactClassLocation.SubContactLink).eq(contactInstance)
+                            .select()
+                            .linkto(CIContacts.SubContactClassLocation.DistrictLocationLink)
+                            .attribute(CIUbicaciones.UbicacionStandardRoot.Code).as("ubigeo")
+                            .attribute(CIContacts.SubContactClassLocation.LocationAdressStreet,
+                                            CIContacts.SubContactClassLocation.LocationAdressCity)
+                            .evaluate();
+            if (locEval.next()) {
+                address = locEval.get(CIContacts.SubContactClassLocation.LocationAdressStreet) + " - "
+                            + locEval.get(CIContacts.SubContactClassLocation.LocationAdressCity);
+            }
+        }
+        final var addressLine = address == null ? "NO address" : address;
+        return new IAddress()
+        {
+            @Override
+            public String getAddressLine()
+            {
+                return addressLine;
+            }
+
+            @Override
+            public String getCountry()
+            {
+                return null;
+            }
+        };
     }
 
     protected Driver getDriver(final Long driverId) throws EFapsException {
@@ -405,7 +469,7 @@ public abstract class UBLService_Base
                             .withDescription(eval.get(CISales.PositionSumAbstract.ProductDesc))
                             .withUoMCode(Dimension.getUoM(uomId).getCommonCode())
                             .withAdditionalItemProperties(Collections.singletonList(
-                                            () -> ItemPropertyType.NORMALIZED))
+                                            new AdditionalItemProperty()))
                             .build());
         }
         return ret;
@@ -610,7 +674,7 @@ public abstract class UBLService_Base
         ret.setDOI(ERP.COMPANY_TAX.get());
         ret.setName(ERP.COMPANY_NAME.get());
         ret.setStreetName(ERP.COMPANY_STREET.get());
-        ret.setUbigeo(ERP.COMPANY_UBIGEO.get());
+        ret.withGeoLocationId(ERP.COMPANY_UBIGEO.get());
         ret.setCountry(ERP.COMPANY_COUNTRY.get());
         ret.setAnexo(ERP.COMPANY_ESTABLECIMIENTO.get());
         ret.setDistrict(ERP.COMPANY_DISTRICT.get());
@@ -728,7 +792,7 @@ public abstract class UBLService_Base
             if (freeOfCharge) {
                 final var tax = Tax_Base.get(entry.getCatUUID(), entry.getUUID());
                 ret.add(org.efaps.esjp.electronicbilling.entities.TaxEntry.builder()
-                                .withTaxType(org.efaps.ubl.documents.TaxType.ADVALOREM)
+                                .withTaxType(org.efaps.ubl.documents.values.TaxType.ADVALOREM)
                                 .withAmount(entry.getAmount())
                                 .withTaxableAmount(entry.getBase())
                                 .withTaxExemptionReasonCode(isLine ? "11" : null)
@@ -744,16 +808,16 @@ public abstract class UBLService_Base
                 final var name = getTaxProperty(entry.getUUID(), "nombre");
                 final var id = getTaxProperty(entry.getUUID(), "sunat-id");
                 final var taxExemptionReasonCode = getTaxProperty(entry.getUUID(), "afectacion-igv");
-                org.efaps.ubl.documents.TaxType taxType;
+                org.efaps.ubl.documents.values.TaxType taxType;
                 final var tax = Tax_Base.get(entry.getCatUUID(), entry.getUUID());
 
                 switch (tax.getTaxType()) {
                     case PERUNIT:
-                        taxType = org.efaps.ubl.documents.TaxType.PERUNIT;
+                        taxType = org.efaps.ubl.documents.values.TaxType.PERUNIT;
                         break;
                     case ADVALOREM:
                     default:
-                        taxType = org.efaps.ubl.documents.TaxType.ADVALOREM;
+                        taxType = org.efaps.ubl.documents.values.TaxType.ADVALOREM;
                         break;
                 }
                 ret.add(org.efaps.esjp.electronicbilling.entities.TaxEntry.builder()

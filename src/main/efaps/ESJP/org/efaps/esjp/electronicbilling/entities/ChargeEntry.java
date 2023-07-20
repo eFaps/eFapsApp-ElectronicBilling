@@ -37,7 +37,7 @@ import java.math.RoundingMode;
 
 import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
-import org.efaps.ubl.documents.IChargeEntry;
+import org.efaps.ubl.documents.interfaces.IChargeEntry;
 
 @EFapsUUID("a8b31efa-6075-424a-91e3-1be320078c9f")
 @EFapsApplication("eFapsApp-ElectronicBilling")

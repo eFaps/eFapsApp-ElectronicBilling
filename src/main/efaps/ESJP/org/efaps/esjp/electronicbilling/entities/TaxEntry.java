@@ -21,8 +21,8 @@ import java.math.RoundingMode;
 
 import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
-import org.efaps.ubl.documents.ITaxEntry;
-import org.efaps.ubl.documents.TaxType;
+import org.efaps.ubl.documents.interfaces.ITaxEntry;
+import org.efaps.ubl.documents.values.TaxType;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
@@ -152,6 +152,7 @@ public class TaxEntry
         this.taxType = taxType;
     }
 
+    @Override
     public boolean isFreeOfCharge()
     {
         return freeOfCharge;
