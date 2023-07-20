@@ -72,6 +72,7 @@ import org.efaps.ubl.documents.Carrier;
 import org.efaps.ubl.documents.CreditNote;
 import org.efaps.ubl.documents.Customer;
 import org.efaps.ubl.documents.DeliveryNote;
+import org.efaps.ubl.documents.Driver;
 import org.efaps.ubl.documents.IAllowanceChargeEntry;
 import org.efaps.ubl.documents.ICarrier;
 import org.efaps.ubl.documents.ICustomer;
@@ -144,9 +145,9 @@ public abstract class UBLService_Base
         if ("0".equals(responseCode)) {
             final var status = Status.find(eDocInst.getType().getStatusAttribute().getLink().getUUID(), "Successful");
             EQL.builder().update(eDocInst)
-                .set(CIEBilling.DocumentAbstract.StatusAbstract, status.getId())
-                .stmt()
-                .execute();
+                            .set(CIEBilling.DocumentAbstract.StatusAbstract, status.getId())
+                            .stmt()
+                            .execute();
         }
 
         if (logType != null) {
@@ -171,7 +172,6 @@ public abstract class UBLService_Base
                             .execute();
         }
     }
-
 
     public Return ceateUBL(final Parameter _parameter)
         throws EFapsException
@@ -303,17 +303,18 @@ public abstract class UBLService_Base
     }
 
     protected DeliveryNote fillDeliveryNote(final Instance docInstance,
-                                            final DeliveryNote ubl) throws EFapsException
+                                            final DeliveryNote ubl)
+        throws EFapsException
     {
         LOG.info("starting filling {}", docInstance);
         final var eval = EQL.builder().print(docInstance)
                         .attribute(CISales.DeliveryNote.Name, CISales.DeliveryNote.Date, CISales.DeliveryNote.DueDate,
-                                        CISales.DeliveryNote.Created)
+                                        CISales.DeliveryNote.Created, CISales.DeliveryNote.DriverLink)
                         .linkto(CISales.DocumentSumAbstract.Contact).instance().as("contactInstance")
                         .linkto(CISales.DeliveryNote.TransferReason)
-                            .attribute(CISales.AttributeDefinitionTransferReason.MappingKey).as("transferReason")
+                        .attribute(CISales.AttributeDefinitionTransferReason.MappingKey).as("transferReason")
                         .linkto(CISales.DeliveryNote.TransferReason)
-                            .attribute(CISales.AttributeDefinitionTransferReason.Description).as("transferReasonDescr")
+                        .attribute(CISales.AttributeDefinitionTransferReason.Description).as("transferReasonDescr")
                         .linkto(CISales.DeliveryNote.CarrierLink).instance().as("carrierInst")
                         .evaluate();
         final Instance contactInstance = eval.get("contactInstance");
@@ -324,12 +325,12 @@ public abstract class UBLService_Base
         final boolean thirdParty = !ERP.COMPANY_CONTACT.get().equals(eval.get("carrierInst"));
 
         ubl.withNumber(eval.get(CISales.DeliveryNote.Name))
-            .withDate(date)
-            .withTime(evalTime(date, created))
-            .withSupplier(getSupplier())
-            .withCustomer(getCustomer(contactInstance))
-            .withLines(getDeliveryNoteLines(docInstance))
-            .withShipment(getShipment(eval, thirdParty));
+                        .withDate(date)
+                        .withTime(evalTime(date, created))
+                        .withSupplier(getSupplier())
+                        .withCustomer(getCustomer(contactInstance))
+                        .withLines(getDeliveryNoteLines(docInstance))
+                        .withShipment(getShipment(eval, thirdParty));
         return ubl;
     }
 
@@ -351,8 +352,33 @@ public abstract class UBLService_Base
         if (thirdParty) {
             ret.addInstruction("SUNAT_Envio_IndicadorVehiculoConductoresTransp");
         }
+        stage.withDriver(getDriver(eval.get(CISales.DeliveryNote.DriverLink)));
         return ret;
     }
+
+    protected Driver getDriver(final Long driverId) throws EFapsException {
+        if (driverId == null) {
+            LOG.error("No driver for DeliveryNote found");
+        }
+        // Contacts_ClassCarrier/DriverSet
+        final var eval = EQL.builder()
+                        .print(Instance.get(UUID.fromString("09ee80a0-e8c0-41d2-b272-c30a32733fea"), driverId))
+            .linkto(CIContacts.AttributeAbstractClassCarrierDriver.DOITypeLink)
+            .attribute(CIContacts.AttributeDefinitionDOIType.MappingKey).as("doiType")
+            .attribute(CIContacts.AttributeAbstractClassCarrierDriver.Name,
+                            CIContacts.AttributeAbstractClassCarrierDriver.LastName,
+                            CIContacts.AttributeAbstractClassCarrierDriver.License,
+                            CIContacts.AttributeAbstractClassCarrierDriver.DocumentOfIdentity)
+            .evaluate();
+        final var driver = new Driver()
+                        .withDoiType(eval.get("doiType"))
+                        .withDOI(eval.get(CIContacts.AttributeAbstractClassCarrierDriver.DocumentOfIdentity))
+                        .withFirstName(eval.get(CIContacts.AttributeAbstractClassCarrierDriver.Name))
+                        .withFamilyName(eval.get(CIContacts.AttributeAbstractClassCarrierDriver.LastName))
+                        .withLicense(eval.get(CIContacts.AttributeAbstractClassCarrierDriver.License));
+        return driver;
+    }
+
 
     protected List<ILine> getDeliveryNoteLines(final Instance docInstance)
         throws EFapsException
@@ -379,7 +405,7 @@ public abstract class UBLService_Base
                             .withDescription(eval.get(CISales.PositionSumAbstract.ProductDesc))
                             .withUoMCode(Dimension.getUoM(uomId).getCommonCode())
                             .withAdditionalItemProperties(Collections.singletonList(
-                                           () -> ItemPropertyType.NORMALIZED ))
+                                            () -> ItemPropertyType.NORMALIZED))
                             .build());
         }
         return ret;
@@ -463,16 +489,18 @@ public abstract class UBLService_Base
                         });
 
         if (ubl instanceof CreditNote) {
-           final var refEval = EQL.builder().print().query(CISales.CreditNote2Invoice, CISales.CreditNote2Receipt)
-                .where().attribute(CISales.Document2DocumentAbstract.FromAbstractLink).eq(docInstance)
-                .select()
-                .linkto(CISales.Document2DocumentAbstract.ToAbstractLink).instance().as("refInst")
-                .linkto(CISales.Document2DocumentAbstract.ToAbstractLink).attribute(CISales.DocumentAbstract.Name).as("name")
-                .linkto(CISales.Document2DocumentAbstract.ToAbstractLink).attribute(CISales.DocumentAbstract.Date).as("date")
-                .evaluate();
-           refEval.next();
-           final Instance refIns = refEval.get("refInst");
-           final var reference = new Reference()
+            final var refEval = EQL.builder().print().query(CISales.CreditNote2Invoice, CISales.CreditNote2Receipt)
+                            .where().attribute(CISales.Document2DocumentAbstract.FromAbstractLink).eq(docInstance)
+                            .select()
+                            .linkto(CISales.Document2DocumentAbstract.ToAbstractLink).instance().as("refInst")
+                            .linkto(CISales.Document2DocumentAbstract.ToAbstractLink)
+                            .attribute(CISales.DocumentAbstract.Name).as("name")
+                            .linkto(CISales.Document2DocumentAbstract.ToAbstractLink)
+                            .attribute(CISales.DocumentAbstract.Date).as("date")
+                            .evaluate();
+            refEval.next();
+            final Instance refIns = refEval.get("refInst");
+            final var reference = new Reference()
                             .setDocType(InstanceUtils.isKindOf(refIns, CISales.Invoice) ? "01" : "03")
                             .setNumber(refEval.get("name"))
                             .setDate(refEval.get("date"));
@@ -490,16 +518,17 @@ public abstract class UBLService_Base
     {
         if (Sales.CLASSTAXINFOACTIVATE.get() && baseCrossTotal.compareTo(new BigDecimal("700")) > 0) {
             final var eval = EQL.builder().print(contactInstance)
-                .clazz(CISales.Contacts_ClassTaxinfo)
-                .attribute(CISales.Contacts_ClassTaxinfo.Retention).as("retention")
-                .evaluate();
+                            .clazz(CISales.Contacts_ClassTaxinfo)
+                            .attribute(CISales.Contacts_ClassTaxinfo.Retention).as("retention")
+                            .evaluate();
             if (eval.next()) {
-                final TaxRetention retention =  eval.get("retention");
+                final TaxRetention retention = eval.get("retention");
                 if (retention != null && retention.equals(TaxRetention.AGENT)) {
                     allowancesCharges.add(AllowanceEntry.builder()
                                     .withAmount(new BigDecimal("0.03").multiply(rateCrossTotal))
                                     .withBaseAmount(rateCrossTotal)
-                                    //(Código de motivo de cargo/ descuento: Retención del IGV)
+                                    // (Código de motivo de cargo/ descuento:
+                                    // Retención del IGV)
                                     .withReason("62")
                                     .withFactor(new BigDecimal("0.03"))
                                     .build());
