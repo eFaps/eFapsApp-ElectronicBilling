@@ -23,6 +23,6 @@
     <definition>
         <version-expression>(version==latest)</version-expression>
         <name>EBilling_LogRequest</name>
-        <parent>EBilling_LogAbstract</parent>
+        <parent>EBilling_DocumentLogAbstract</parent>
     </definition>
 </datamodel-type>

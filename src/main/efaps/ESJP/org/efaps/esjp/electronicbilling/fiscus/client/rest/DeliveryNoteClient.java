@@ -28,7 +28,6 @@ import java.util.zip.ZipOutputStream;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.codec.binary.Base64;
@@ -39,6 +38,8 @@ import org.efaps.admin.program.esjp.EFapsUUID;
 import org.efaps.esjp.common.file.FileUtil;
 import org.efaps.esjp.electronicbilling.fiscus.client.dto.ArchiveDto;
 import org.efaps.esjp.electronicbilling.fiscus.client.dto.DeliveryNoteRequestDto;
+import org.efaps.esjp.electronicbilling.fiscus.client.dto.DeliveryNoteResponseDto;
+import org.efaps.esjp.electronicbilling.fiscus.client.dto.ErrorResponseDto;
 import org.efaps.esjp.electronicbilling.util.ElectronicBilling;
 import org.efaps.esjp.erp.util.ERP;
 import org.efaps.util.EFapsException;
@@ -53,7 +54,7 @@ public class DeliveryNoteClient
 
     private static final Logger LOG = LoggerFactory.getLogger(DeliveryNoteClient.class);
 
-    public Response sendUbl(final String documentType,
+    public Object sendUbl(final String documentType,
                             final String docName,
                             final String ubl)
         throws EFapsException
@@ -75,12 +76,16 @@ public class DeliveryNoteClient
                                         .build())
                         .build();
         final var response = request.post(Entity.json(dto));
+        Object responseEntity = null;
         if (response.getStatusInfo().equals(Status.OK)) {
-            LOG.info("Response: {}", response.getEntity());
+            LOG.info("Response: {}", response.getStatusInfo());
+            responseEntity = response.readEntity(DeliveryNoteResponseDto.class);
         } else {
-            LOG.error("Error response: {}", response.getEntity());
+            LOG.error("Error response: {} - {}", response.getStatus(), response.getStatusInfo().getReasonPhrase());
+            responseEntity = response.readEntity(ErrorResponseDto.class);
+            LOG.info("responseEntity {}", responseEntity);
         }
-        return response;
+        return responseEntity;
     }
 
     protected String getHashSha256(File zipFile)

@@ -30,10 +30,16 @@ import org.efaps.eql.EQL;
 import org.efaps.esjp.ci.CIEBilling;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.db.InstanceUtils;
+import org.efaps.esjp.electronicbilling.fiscus.client.dto.DeliveryNoteResponseDto;
 import org.efaps.esjp.electronicbilling.fiscus.client.rest.DeliveryNoteClient;
 import org.efaps.util.EFapsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @EFapsUUID("fa7cde86-d871-4ba1-8d38-ab77265514cc")
 @EFapsApplication("eFapsApp-ElectronicBilling")
@@ -71,9 +77,10 @@ public class Synchronizer
                     restClient = new DeliveryNoteClient();
                 }
                 if (documentType != null) {
+                        final Instance eDocInst = eval.inst();
                         final var xmlEval = EQL.builder().print()
                                         .query(CIEBilling.UBLFile)
-                                        .where().attribute(CIEBilling.UBLFile.DocumentLinkAbstract).eq(eval.inst())
+                                        .where().attribute(CIEBilling.UBLFile.DocumentLinkAbstract).eq(eDocInst)
                                         .select()
                                         .instance()
                                         .evaluate();
@@ -83,15 +90,50 @@ public class Synchronizer
                             checkout.execute(os);
                             final String xml = new String(os.toByteArray(), StandardCharsets.UTF_8);
                             LOG.info("xml: \n {}", xml);
-                             restClient.sendUbl(documentType, docName, xml);
+                            final var dto =  restClient.sendUbl(documentType, docName, xml);
+                            LOG.info("dto: {}", dto);
+                            if (dto instanceof DeliveryNoteResponseDto) {
+                                final var ticketNumber = ((DeliveryNoteResponseDto) dto).getNumTicket();
+                                setStatus(eDocInst, "Issued", ticketNumber);
+                            }
+                            logResponse(eDocInst, dto);
                         }
                 }
             }
         }
     }
 
+    protected void logResponse(final Instance eDocIns,
+                               final Object object)
+        throws EFapsException
+    {
+
+        String json = null;
+        try {
+            json = getObjectMapper().writeValueAsString(object);
+        } catch (final JsonProcessingException e) {
+            LOG.error("Catched", e);
+        }
+        LOG.info("log: {}", json);
+        EQL.builder().insert(CIEBilling.LogResponse)
+                        .set(CIEBilling.LogResponse.DocumentLinkAbstract, eDocIns)
+                        .set(CIEBilling.LogResponse.Content, json)
+                        .stmt()
+                        .execute();
+    }
+
+    protected ObjectMapper getObjectMapper()
+    {
+        final var mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        return mapper;
+    }
+
+
     public void setStatus(final Instance _eDocInst,
-                          final String status)
+                          final String status,
+                          final String identifier)
         throws EFapsException
     {
         CIStatus targetStatus;
@@ -113,7 +155,7 @@ public class Synchronizer
                     targetStatus = CIEBilling.ReceiptStatus.Successful;
                     break;
             }
-        } else {
+        } else if (InstanceUtils.isType(_eDocInst, CIEBilling.CreditNote)){
             switch (status) {
                 case "Issued":
                     targetStatus = CIEBilling.CreditNoteStatus.Issued;
@@ -122,9 +164,19 @@ public class Synchronizer
                     targetStatus = CIEBilling.CreditNoteStatus.Successful;
                     break;
             }
+        } else {
+            switch (status) {
+                case "Issued":
+                    targetStatus = CIEBilling.DeliveryNoteStatus.Issued;
+                    break;
+                default:
+                    targetStatus = CIEBilling.DeliveryNoteStatus.Successful;
+                    break;
+            }
         }
         EQL.builder().update(_eDocInst)
                         .set(CIEBilling.DocumentAbstract.StatusAbstract, targetStatus)
+                        .set(CIEBilling.DocumentAbstract.Identifier, identifier)
                         .stmt()
                         .execute();
     }
