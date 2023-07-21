@@ -55,14 +55,15 @@ public class DeliveryNoteClient
     private static final Logger LOG = LoggerFactory.getLogger(DeliveryNoteClient.class);
 
     public Object sendUbl(final String documentType,
-                            final String docName,
-                            final String ubl)
+                          final String docName,
+                          final String ubl)
         throws EFapsException
     {
         final var fileName = ERP.COMPANY_TAX.get() + "-" + documentType + "-" + docName;
         final var zipFile = zip(ubl, fileName);
 
         final var base64zip = getBase64Zip(zipFile);
+        final var hash = getHashSha256(zipFile);
         // {numRucEmisor}-{codCpe}-{numSerie}-{numCpe}
         final var request = getClient().target(ElectronicBilling.DELIVERYNOTE_ENDPOINTURI.get())
                         .path(fileName)
@@ -72,7 +73,7 @@ public class DeliveryNoteClient
                         .withArchive(ArchiveDto.builder()
                                         .withName(fileName + ".zip")
                                         .withBase64Zip(base64zip)
-                                        .withHashZip(ubl)
+                                        .withHashZip(hash)
                                         .build())
                         .build();
         final var response = request.post(Entity.json(dto));
@@ -88,18 +89,19 @@ public class DeliveryNoteClient
         return responseEntity;
     }
 
-    protected String getHashSha256(File zipFile)
+    protected String getHashSha256(final File zipFile)
     {
-        byte[] sha256 = null;
+        String sha256 = null;
         try {
-            sha256 = DigestUtils.sha256(new FileInputStream(zipFile));
+            //lowercase hexits.
+            sha256 = DigestUtils.sha256Hex(new FileInputStream(zipFile));
         } catch (final IOException e) {
             LOG.error("Catched", e);
         }
-        return new String(sha256, StandardCharsets.UTF_8);
+        return sha256;
     }
 
-    protected String getBase64Zip(File zipFile)
+    protected String getBase64Zip(final File zipFile)
     {
         byte[] encoded = null;
         try {
@@ -110,8 +112,8 @@ public class DeliveryNoteClient
         return new String(encoded, StandardCharsets.UTF_8);
     }
 
-    protected File zip(String ubl,
-                       String fileName)
+    protected File zip(final String ubl,
+                       final String fileName)
         throws EFapsException
     {
         final var ublStream = new ByteArrayInputStream(ubl.getBytes());
