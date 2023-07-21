@@ -77,11 +77,13 @@ import org.efaps.ubl.documents.elements.Carrier;
 import org.efaps.ubl.documents.elements.Customer;
 import org.efaps.ubl.documents.elements.Delivery;
 import org.efaps.ubl.documents.elements.Driver;
+import org.efaps.ubl.documents.elements.Equipment;
 import org.efaps.ubl.documents.elements.Line;
 import org.efaps.ubl.documents.elements.Reference;
 import org.efaps.ubl.documents.elements.Shipment;
 import org.efaps.ubl.documents.elements.Stage;
 import org.efaps.ubl.documents.elements.Supplier;
+import org.efaps.ubl.documents.elements.Transport;
 import org.efaps.ubl.documents.interfaces.IAddress;
 import org.efaps.ubl.documents.interfaces.IAllowanceChargeEntry;
 import org.efaps.ubl.documents.interfaces.ICarrier;
@@ -312,7 +314,8 @@ public abstract class UBLService_Base
         LOG.info("starting filling {}", docInstance);
         final var eval = EQL.builder().print(docInstance)
                         .attribute(CISales.DeliveryNote.Name, CISales.DeliveryNote.Date, CISales.DeliveryNote.DueDate,
-                                        CISales.DeliveryNote.Created, CISales.DeliveryNote.DriverLink)
+                                        CISales.DeliveryNote.Created, CISales.DeliveryNote.DriverLink,
+                                        CISales.DeliveryNote.VehicleLink)
                         .linkto(CISales.DocumentSumAbstract.Contact).instance().as("contactInstance")
                         .linkto(CISales.DeliveryNote.TransferReason)
                         .attribute(CISales.AttributeDefinitionTransferReason.MappingKey).as("transferReason")
@@ -352,6 +355,7 @@ public abstract class UBLService_Base
         ret.withHandlingCode(eval.get("transferReason"))
                         .withHandlingInstructions(eval.get("transferReasonDescr"))
                         .withDelivery(getDelivery(eval))
+                        .addTransportUnit(getTransport(ret, eval))
                         .addStage(stage);
 
         if (thirdParty) {
@@ -359,6 +363,41 @@ public abstract class UBLService_Base
         }
         stage.withDriver(getDriver(eval.get(CISales.DeliveryNote.DriverLink)));
         return ret;
+    }
+
+    protected Transport getTransport(final Shipment shipment,
+                                     final Evaluator eval)
+        throws EFapsException
+    {
+        final var ret = new Transport()
+                        .addEquipment(getEquipment(shipment, eval.get(CISales.DeliveryNote.VehicleLink)));
+        return ret;
+    }
+
+    protected Equipment getEquipment(final Shipment shipment,
+                                     final Long vehicleId)
+        throws EFapsException
+    {
+        if (vehicleId == null) {
+            LOG.error("No Vehicle for DeliveryNote found");
+        }
+        // Contacts_ClassCarrier/CarrierSet
+        final var eval = EQL.builder()
+                        .print(Instance.get(UUID.fromString("d6d49ad1-dd0f-400b-a250-cd58315234fb"), vehicleId))
+                        .attribute(CIContacts.AttributeAbstractClassCarrier.Registration,
+                                        CIContacts.AttributeAbstractClassCarrier.Certificate,
+                                        CIContacts.AttributeAbstractClassCarrier.PublicRegistryNo,
+                                        CIContacts.AttributeAbstractClassCarrier.MinorVehicle)
+                        .evaluate();
+        final var equipment = new Equipment()
+                        .withLicensePlate(eval.get(CIContacts.AttributeAbstractClassCarrier.Registration))
+                        .withCertificate(eval.get(CIContacts.AttributeAbstractClassCarrier.Certificate));
+
+        final Boolean isMinor = eval.get(CIContacts.AttributeAbstractClassCarrier.MinorVehicle);
+        if (isMinor != null && isMinor) {
+            shipment.addInstruction("SUNAT_Envio_IndicadorTrasladoVehiculoM1L");
+        }
+        return equipment;
     }
 
     protected Delivery getDelivery(final Evaluator eval)
@@ -376,6 +415,7 @@ public abstract class UBLService_Base
     {
         final Instance contactInstance = eval.get(key);
         String address = null;
+        String geoLocationId = null;
         if (InstanceUtils.isKindOf(contactInstance, CIContacts.Contact)) {
             final var locEval = EQL.builder().print().query(CIContacts.ClassLocation)
                             .where().attribute(CIContacts.ClassLocation.ContactLink).eq(contactInstance)
@@ -388,6 +428,7 @@ public abstract class UBLService_Base
             if (locEval.next()) {
                 address = locEval.get(CIContacts.ClassLocation.LocationAdressStreet) + " - "
                             + locEval.get(CIContacts.ClassLocation.LocationAdressCity);
+                geoLocationId = locEval.get("ubigeo");
             }
         } else {
             final var locEval = EQL.builder().print().query(CIContacts.SubContactClassLocation)
@@ -401,9 +442,11 @@ public abstract class UBLService_Base
             if (locEval.next()) {
                 address = locEval.get(CIContacts.SubContactClassLocation.LocationAdressStreet) + " - "
                             + locEval.get(CIContacts.SubContactClassLocation.LocationAdressCity);
+                geoLocationId = locEval.get("ubigeo");
             }
         }
         final var addressLine = address == null ? "NO address" : address;
+        final var geoLocation = geoLocationId;
         return new IAddress()
         {
             @Override
@@ -413,9 +456,9 @@ public abstract class UBLService_Base
             }
 
             @Override
-            public String getCountry()
+            public String getGeoLocationId()
             {
-                return null;
+                return geoLocation;
             }
         };
     }
