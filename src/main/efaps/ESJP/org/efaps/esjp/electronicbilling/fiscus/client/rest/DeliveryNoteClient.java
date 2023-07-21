@@ -1,3 +1,19 @@
+/*
+ * Copyright 2003 - 2023 The eFaps Team
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
 package org.efaps.esjp.electronicbilling.fiscus.client.rest;
 
 import java.io.ByteArrayInputStream;
@@ -12,6 +28,7 @@ import java.util.zip.ZipOutputStream;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.codec.binary.Base64;
@@ -30,22 +47,22 @@ import org.slf4j.LoggerFactory;
 
 @EFapsUUID("c5bc9132-1f8a-44da-8780-3f63411a6607")
 @EFapsApplication("eFapsApp-ElectronicBilling")
-public class DeiveryNoteClient
+public class DeliveryNoteClient
     extends AbstractRestClient
 {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DeiveryNoteClient.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DeliveryNoteClient.class);
 
-    public void sendUbl(final String documentType,
-                        final String docName,
-                        final String ubl)
+    public Response sendUbl(final String documentType,
+                            final String docName,
+                            final String ubl)
         throws EFapsException
     {
         final var fileName = ERP.COMPANY_TAX.get() + "-" + documentType + "-" + docName;
         final var zipFile = zip(ubl, fileName);
 
         final var base64zip = getBase64Zip(zipFile);
-        //{numRucEmisor}-{codCpe}-{numSerie}-{numCpe}
+        // {numRucEmisor}-{codCpe}-{numSerie}-{numCpe}
         final var request = getClient().target(ElectronicBilling.DELIVERYNOTE_ENDPOINTURI.get())
                         .path(fileName)
                         .request(MediaType.APPLICATION_JSON)
@@ -63,6 +80,7 @@ public class DeiveryNoteClient
         } else {
             LOG.error("Error response: {}", response.getEntity());
         }
+        return response;
     }
 
     protected String getHashSha256(File zipFile)

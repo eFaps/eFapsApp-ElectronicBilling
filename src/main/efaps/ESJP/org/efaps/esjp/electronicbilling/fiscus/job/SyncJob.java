@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-package org.efaps.esjp.electronicbilling.sync;
+package org.efaps.esjp.electronicbilling.fiscus.job;
 
 import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
@@ -28,15 +28,19 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@EFapsUUID("66daed0b-5cde-4765-871c-aa9395e92c5d")
+@EFapsUUID("ca32e1a3-029f-45b2-b97e-fff40c1493be")
 @EFapsApplication("eFapsApp-ElectronicBilling")
 public class SyncJob
     implements Job
 {
+
+    /**
+     * Logger for this class.
+     */
     private static final Logger LOG = LoggerFactory.getLogger(SyncJob.class);
 
     @Override
-    public void execute(final JobExecutionContext context)
+    public void execute(final JobExecutionContext _context)
         throws JobExecutionException
     {
         try {
@@ -45,7 +49,6 @@ public class SyncJob
                 Context.getThreadContext().setCompany(company);
                 final var parameter = ParameterUtil.instance();
                 final var synchronizer = new Synchronizer();
-                synchronizer.syncIssued(parameter);
                 synchronizer.syncPending(parameter);
             }
             // remove the company to be sure
@@ -54,5 +57,4 @@ public class SyncJob
             LOG.error("Catched", e);
         }
     }
-
 }
