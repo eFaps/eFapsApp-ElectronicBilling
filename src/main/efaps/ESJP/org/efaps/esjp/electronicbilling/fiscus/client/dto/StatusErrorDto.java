@@ -23,39 +23,29 @@ import org.efaps.admin.program.esjp.EFapsUUID;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-@JsonDeserialize(builder = ArchiveDto.Builder.class)
-@EFapsUUID("d654382a-0c87-483f-8743-0a9def7476d8")
+@JsonDeserialize(builder = StatusErrorDto.Builder.class)
+@EFapsUUID("15dac98f-78cb-4646-936a-cb6e0c5a79f6")
 @EFapsApplication("eFapsApp-ElectronicBilling")
-public class ArchiveDto
+public class StatusErrorDto
 {
 
-    private final String name;
-    private final String base64Zip;
-    private final String hashZip;
+    private final Integer cod;
+    private final String msg;
 
-    private ArchiveDto(Builder builder)
+    private StatusErrorDto(Builder builder)
     {
-        this.name = builder.name;
-        this.base64Zip = builder.base64Zip;
-        this.hashZip = builder.hashZip;
+        this.cod = builder.cod;
+        this.msg = builder.msg;
     }
 
-    @JsonProperty("nomArchivo")
-    public String getName()
+    public Integer getCod()
     {
-        return name;
+        return cod;
     }
 
-    @JsonProperty("arcGreZip")
-    public String getBase64Zip()
+    public String getMsg()
     {
-        return base64Zip;
-    }
-
-    @JsonProperty("hashZip")
-    public String getHashZip()
-    {
-        return hashZip;
+        return msg;
     }
 
     @Override
@@ -72,35 +62,30 @@ public class ArchiveDto
     public static final class Builder
     {
 
-        private String name;
-        private String base64Zip;
-        private String hashZip;
+        private Integer cod;
+        private String msg;
 
         private Builder()
         {
         }
 
-        public Builder withName(String name)
+        @JsonProperty("numError")
+        public Builder withCod(Integer cod)
         {
-            this.name = name;
+            this.cod = cod;
             return this;
         }
 
-        public Builder withBase64Zip(String base64Zip)
+        @JsonProperty("desError")
+        public Builder withMsg(String msg)
         {
-            this.base64Zip = base64Zip;
+            this.msg = msg;
             return this;
         }
 
-        public Builder withHashZip(String hashZip)
+        public StatusErrorDto build()
         {
-            this.hashZip = hashZip;
-            return this;
-        }
-
-        public ArchiveDto build()
-        {
-            return new ArchiveDto(this);
+            return new StatusErrorDto(this);
         }
     }
 }

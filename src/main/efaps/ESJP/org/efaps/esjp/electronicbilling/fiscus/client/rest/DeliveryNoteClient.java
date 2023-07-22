@@ -40,6 +40,7 @@ import org.efaps.esjp.electronicbilling.fiscus.client.dto.ArchiveDto;
 import org.efaps.esjp.electronicbilling.fiscus.client.dto.DeliveryNoteRequestDto;
 import org.efaps.esjp.electronicbilling.fiscus.client.dto.DeliveryNoteResponseDto;
 import org.efaps.esjp.electronicbilling.fiscus.client.dto.ErrorResponseDto;
+import org.efaps.esjp.electronicbilling.fiscus.client.dto.StatusResponseDto;
 import org.efaps.esjp.electronicbilling.util.ElectronicBilling;
 import org.efaps.esjp.erp.util.ERP;
 import org.efaps.util.EFapsException;
@@ -81,6 +82,26 @@ public class DeliveryNoteClient
         if (response.getStatusInfo().equals(Status.OK)) {
             LOG.info("Response: {}", response.getStatusInfo());
             responseEntity = response.readEntity(DeliveryNoteResponseDto.class);
+        } else {
+            LOG.error("Error response: {} - {}", response.getStatus(), response.getStatusInfo().getReasonPhrase());
+            responseEntity = response.readEntity(ErrorResponseDto.class);
+            LOG.info("responseEntity {}", responseEntity);
+        }
+        return responseEntity;
+    }
+
+    public Object getStatus(String identifier)
+        throws EFapsException
+    {
+        final var request = getClient().target(ElectronicBilling.DELIVERYNOTE_STATUSENDPOINTURI.get())
+                        .path(identifier)
+                        .request(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getToken());
+        final var response = request.get();
+        Object responseEntity = null;
+        if (response.getStatusInfo().equals(Status.OK)) {
+            LOG.info("Response: {}", response.getStatusInfo());
+            responseEntity = response.readEntity(StatusResponseDto.class);
         } else {
             LOG.error("Error response: {} - {}", response.getStatus(), response.getStatusInfo().getReasonPhrase());
             responseEntity = response.readEntity(ErrorResponseDto.class);
@@ -137,3 +158,5 @@ public class DeliveryNoteClient
         return file;
     }
 }
+
+

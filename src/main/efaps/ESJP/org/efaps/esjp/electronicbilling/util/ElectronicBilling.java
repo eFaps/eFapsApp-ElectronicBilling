@@ -132,6 +132,13 @@ public final class ElectronicBilling
                     .description("URI of the DeliveryNote endpoint.");
 
     @EFapsSysConfAttribute
+    public static final StringSysConfAttribute DELIVERYNOTE_STATUSENDPOINTURI = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "DeliveryNote.StatusEndpointURI")
+                    .defaultValue("https://api-cpe.sunat.gob.pe/v1/contribuyente/gem/comprobantes/envios")
+                    .description("URI of the state DeliveryNote endpoint.");
+
+    @EFapsSysConfAttribute
     public static final StringSysConfAttribute FISCUS_SSO_ENDPOINTURI = new StringSysConfAttribute()
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
                     .key(ElectronicBilling.BASE + "Fiscus.sso.EndpointURI")

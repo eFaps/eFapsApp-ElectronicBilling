@@ -19,6 +19,7 @@ package org.efaps.esjp.electronicbilling.fiscus.job;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 
+import org.apache.commons.lang.StringUtils;
 import org.efaps.admin.datamodel.Status;
 import org.efaps.admin.event.Parameter;
 import org.efaps.admin.program.esjp.EFapsApplication;
@@ -64,20 +65,21 @@ public class Synchronizer
         while (eval.next()) {
             final String docName = eval.get("DocName");
             if (docName != null) {
+                final Instance eDocInst = eval.inst();
                 String documentType = null;
                 DeliveryNoteClient restClient = null;
-                if (InstanceUtils.isType(eval.inst(), CIEBilling.Invoice)) {
+                if (InstanceUtils.isType(eDocInst, CIEBilling.Invoice)) {
                     documentType = "01";
-                } else if (InstanceUtils.isType(eval.inst(), CIEBilling.Receipt)) {
+                } else if (InstanceUtils.isType(eDocInst, CIEBilling.Receipt)) {
                     documentType = "03";
-                } else if (InstanceUtils.isType(eval.inst(), CIEBilling.CreditNote)) {
+                } else if (InstanceUtils.isType(eDocInst, CIEBilling.CreditNote)) {
                     documentType = "07";
-                } else if (InstanceUtils.isType(eval.inst(), CIEBilling.DeliveryNote)) {
+                } else if (InstanceUtils.isType(eDocInst, CIEBilling.DeliveryNote)) {
                     documentType = "09";
                     restClient = new DeliveryNoteClient();
                 }
                 if (documentType != null) {
-                        final Instance eDocInst = eval.inst();
+
                         final var xmlEval = EQL.builder().print()
                                         .query(CIEBilling.UBLFile)
                                         .where().attribute(CIEBilling.UBLFile.DocumentLinkAbstract).eq(eDocInst)
@@ -98,6 +100,38 @@ public class Synchronizer
                             }
                             logResponse(eDocInst, dto);
                         }
+                }
+            }
+        }
+    }
+
+    public void syncIssued(final Parameter _parameter)
+        throws EFapsException
+    {
+        LOG.info("Syncing issued EDocuments");
+        final var eval = EQL.builder().print()
+                        .query(CIEBilling.DeliveryNote)
+                        .where().attribute(CIEBilling.DeliveryNote.StatusAbstract)
+                        .in(Status.find(CIEBilling.DeliveryNoteStatus.Issued).getId())
+                        .select()
+                        .attribute(CIEBilling.DeliveryNote.Identifier)
+                        .evaluate();
+        while (eval.next()) {
+            final Instance eDocInst = eval.inst();
+            final String identifier = eval.get(CIEBilling.DeliveryNote.Identifier);
+            if (StringUtils.isNotEmpty(identifier)) {
+                DeliveryNoteClient restClient = null;
+                if (InstanceUtils.isType(eval.inst(), CIEBilling.DeliveryNote)) {
+                    restClient = new DeliveryNoteClient();
+                }
+                if (restClient != null) {
+                    final var dto =  restClient.getStatus(identifier);
+                    LOG.info("dto: {}", dto);
+                    if (dto instanceof DeliveryNoteResponseDto) {
+                        final var ticketNumber = ((DeliveryNoteResponseDto) dto).getNumTicket();
+                        setStatus(eDocInst, "Issued", ticketNumber);
+                    }
+                    logResponse(eDocInst, dto);
                 }
             }
         }
