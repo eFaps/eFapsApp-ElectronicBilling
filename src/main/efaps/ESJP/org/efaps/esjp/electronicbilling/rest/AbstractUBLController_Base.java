@@ -19,7 +19,7 @@ package org.efaps.esjp.electronicbilling.rest;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 
-import jakarta.ws.rs.core.Response;
+import javax.ws.rs.core.Response;
 
 import org.efaps.admin.datamodel.Status;
 import org.efaps.admin.program.esjp.EFapsApplication;
