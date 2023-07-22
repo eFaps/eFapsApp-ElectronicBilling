@@ -526,9 +526,9 @@ public abstract class UBLService_Base
         final var zoneId = Context.getThreadContext().getZoneId();
         final var currenDate = LocalDate.now(zoneId);
         if (currenDate.equals(date)) {
-            ret = LocalTime.now(zoneId);
+            ret = LocalTime.now(zoneId).withNano(0);
         } else {
-            ret = created.atZoneSameInstant(zoneId).toLocalTime();
+            ret = created.atZoneSameInstant(zoneId).toLocalTime().withNano(0);
         }
         return ret;
     }
