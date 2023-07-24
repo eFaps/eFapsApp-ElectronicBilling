@@ -23,7 +23,7 @@
         <version-expression>(version==latest)</version-expression>
         <name>EBilling_DocumentAbstractTree_Log</name>
         <target>
-            <table>EBilling_LogTable</table>
+            <table>EBilling_LogUnfilteredTable</table>
             <evaluate program="org.efaps.esjp.common.uitable.MultiPrint">
                 <property name="Type">EBilling_DocumentLogAbstract</property>
                 <property name="LinkFrom">DocumentLinkAbstract</property>

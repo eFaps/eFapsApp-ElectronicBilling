@@ -32,6 +32,7 @@ import org.efaps.esjp.ci.CIEBilling;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.db.InstanceUtils;
 import org.efaps.esjp.electronicbilling.fiscus.client.dto.DeliveryNoteResponseDto;
+import org.efaps.esjp.electronicbilling.fiscus.client.dto.StatusResponseDto;
 import org.efaps.esjp.electronicbilling.fiscus.client.rest.DeliveryNoteClient;
 import org.efaps.util.EFapsException;
 import org.slf4j.Logger;
@@ -127,9 +128,8 @@ public class Synchronizer
                 if (restClient != null) {
                     final var dto =  restClient.getStatus(identifier);
                     LOG.info("dto: {}", dto);
-                    if (dto instanceof DeliveryNoteResponseDto) {
-                        final var ticketNumber = ((DeliveryNoteResponseDto) dto).getNumTicket();
-                        setStatus(eDocInst, "Issued", ticketNumber);
+                    if (dto instanceof StatusResponseDto) {
+                        ((StatusResponseDto) dto).getConfirmation();
                     }
                     logResponse(eDocInst, dto);
                 }
