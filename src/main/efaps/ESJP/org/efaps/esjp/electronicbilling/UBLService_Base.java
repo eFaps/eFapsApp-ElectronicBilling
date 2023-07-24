@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.efaps.admin.datamodel.Dimension;
+import org.efaps.admin.datamodel.Dimension.UoM;
 import org.efaps.admin.datamodel.Status;
 import org.efaps.admin.datamodel.Type;
 import org.efaps.admin.event.Parameter;
@@ -63,6 +64,9 @@ import org.efaps.esjp.electronicbilling.entities.ChargeEntry;
 import org.efaps.esjp.electronicbilling.util.ElectronicBilling;
 import org.efaps.esjp.erp.CurrencyInst;
 import org.efaps.esjp.erp.util.ERP;
+import org.efaps.esjp.products.Conversion;
+import org.efaps.esjp.products.util.ConversionType;
+import org.efaps.esjp.products.util.Products;
 import org.efaps.esjp.sales.tax.Tax_Base;
 import org.efaps.esjp.sales.tax.xml.Taxes;
 import org.efaps.esjp.sales.util.Sales;
@@ -338,18 +342,20 @@ public abstract class UBLService_Base
                         .withSupplier(getSupplier())
                         .withCustomer(getCustomer(contactInstance))
                         .withLines(getDeliveryNoteLines(docInstance))
-                        .withShipment(getShipment(eval, thirdParty));
+                        .withShipment(getShipment(docInstance, eval, thirdParty));
         return ubl;
     }
 
-    protected Shipment getShipment(final Evaluator eval,
+    protected Shipment getShipment(final Instance docInstance,
+                                   final Evaluator eval,
                                    final boolean thirdParty)
         throws EFapsException
     {
         final var ret = new Shipment();
         final var stage = new Stage()
                         .withMode(thirdParty ? "01" : "02")
-                        .withCarrier(getCarrier(eval.get("carrierInst")))
+                        // carrier only if thirdParty
+                        .withCarrier(thirdParty ? getCarrier(eval.get("carrierInst")) : null)
                         .withStartDate(thirdParty ? eval.get(CISales.DeliveryNote.DueDate)
                                         : eval.get(CISales.DeliveryNote.Date));
         ret.withHandlingCode(eval.get("transferReason"))
@@ -358,11 +364,50 @@ public abstract class UBLService_Base
                         .addTransportUnit(getTransport(ret, eval))
                         .addStage(stage);
 
+        evalWeight(docInstance, ret);
+
         if (thirdParty) {
             ret.addInstruction("SUNAT_Envio_IndicadorVehiculoConductoresTransp");
         }
         stage.withDriver(getDriver(eval.get(CISales.DeliveryNote.DriverLink)));
         return ret;
+    }
+
+    protected void evalWeight(final Instance docInstance,
+                              final Shipment shipment)
+        throws EFapsException
+    {
+        BigDecimal crossWeight = BigDecimal.ZERO;
+        UoM uoM = null;
+        if (Products.STANDART_CONV.exists()) {
+            final var eval = EQL.builder()
+                            .print()
+                            .query(CISales.DeliveryNotePosition)
+                            .where()
+                            .attribute(CISales.DeliveryNotePosition.DeliveryNote).eq(docInstance)
+                            .select()
+                            .attribute(CISales.DeliveryNotePosition.Quantity, CISales.DeliveryNotePosition.UoM)
+                            .linkto(CISales.DeliveryNotePosition.Product).instance()
+                            .as("prodInst")
+                            .evaluate();
+
+            while (eval.next()) {
+                final Instance prodInst = eval.get("prodInst");
+                final var qty = eval.<BigDecimal>get(CISales.DeliveryNotePosition.Quantity);
+                final var uomId = eval.<Long>get(CISales.DeliveryNotePosition.UoM);
+                final var uom = Dimension.getUoM(uomId);
+                final var conversion =  Conversion.convert(ConversionType.TRANSPORTWEIGHT, prodInst, qty, uom);
+                crossWeight = crossWeight.add(conversion.getValue());
+                if (uoM == null) {
+                    uoM = conversion.getUoM();
+                }
+            }
+        }
+        if (crossWeight.scale() > 3) {
+            crossWeight = crossWeight.setScale(3, RoundingMode.HALF_UP);
+        }
+        shipment.withCrossWeight(crossWeight)
+            .withCrossWeightUoM(uoM == null ? "KGM" : uoM.getCommonCode());
     }
 
     protected Transport getTransport(final Shipment shipment,
