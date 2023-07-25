@@ -38,6 +38,7 @@ import org.efaps.db.PrintQuery;
 import org.efaps.db.QueryBuilder;
 import org.efaps.db.SelectBuilder;
 import org.efaps.db.Update;
+import org.efaps.eql.EQL;
 import org.efaps.esjp.ci.CIContacts;
 import org.efaps.esjp.ci.CIEBilling;
 import org.efaps.esjp.ci.CIERP;
@@ -54,7 +55,6 @@ import org.efaps.esjp.sales.document.Receipt;
 import org.efaps.esjp.sales.document.Reminder;
 import org.efaps.esjp.sales.util.Sales;
 import org.efaps.util.EFapsException;
-
 
 /**
  * The Class AbstractEBillingDocument_Base.
@@ -121,7 +121,8 @@ public abstract class EBillingDocument_Base
                         || InstanceUtils.isType(_docInst, CISales.Receipt) && ElectronicBilling.RECEIPT_ACTIVE.get()
                         || InstanceUtils.isType(_docInst, CISales.Reminder) && ElectronicBilling.REMINDER_ACTIVE.get()
                         || InstanceUtils.isType(_docInst, CISales.DeliveryNote)
-                            && ElectronicBilling.DELIVERYNOTE_ACTIVE.get()) {
+                                        && ElectronicBilling.DELIVERYNOTE_ACTIVE.get()) {
+
             final Properties docProps = ElectronicBilling.DOCMAPPING.get();
             final String typeName = _docInst.getType().getName();
             final String typeUUID = _docInst.getType().getUUID().toString();
@@ -130,20 +131,26 @@ public abstract class EBillingDocument_Base
                 final QueryBuilder queryBldr = new QueryBuilder(CIEBilling.DocumentAbstract);
                 queryBldr.addWhereAttrEqValue(CIEBilling.DocumentAbstract.DocumentLinkAbstract, _docInst);
                 if (queryBldr.getQuery().executeWithoutAccessCheck().isEmpty()) {
-                    final Type eType = isUUID(edoc) ? Type.get(UUID.fromString(edoc)) : Type.get(edoc);
-                    final String eTypeName = eType.getName();
-                    final String eTypeUUID = eType.getUUID().toString();
-                    final String edocStatusKey = docProps.getProperty(eTypeName + ".CreateStatus", docProps.getProperty(
-                                    eTypeUUID + ".CreateStatus"));
-                    if (edocStatusKey != null) {
-                        final Status status = Status.find(eType.getStatusAttribute().getLink().getUUID(),
-                                        edocStatusKey);
-                        if (status != null) {
-                            final Insert insert = new Insert(eType);
-                            insert.add(CIEBilling.DocumentAbstract.DocumentLinkAbstract, _docInst);
-                            insert.add(CIEBilling.DocumentAbstract.StatusAbstract, status);
-                            insert.executeWithoutAccessCheck();
-                            ret = insert.getInstance();
+                    final var eval = EQL.builder().print(_docInst).attribute(CISales.DocumentAbstract.Name).evaluate();
+                    final var name = eval.<String>get(CISales.DocumentAbstract.Name);
+                    final var regex = docProps.getProperty(typeName + ".NameRegexMatch", ".*");
+                    if (name.matches(regex)) {
+                        final Type eType = isUUID(edoc) ? Type.get(UUID.fromString(edoc)) : Type.get(edoc);
+                        final String eTypeName = eType.getName();
+                        final String eTypeUUID = eType.getUUID().toString();
+                        final String edocStatusKey = docProps.getProperty(eTypeName + ".CreateStatus",
+                                        docProps.getProperty(
+                                                        eTypeUUID + ".CreateStatus"));
+                        if (edocStatusKey != null) {
+                            final Status status = Status.find(eType.getStatusAttribute().getLink().getUUID(),
+                                            edocStatusKey);
+                            if (status != null) {
+                                final Insert insert = new Insert(eType);
+                                insert.add(CIEBilling.DocumentAbstract.DocumentLinkAbstract, _docInst);
+                                insert.add(CIEBilling.DocumentAbstract.StatusAbstract, status);
+                                insert.executeWithoutAccessCheck();
+                                ret = insert.getInstance();
+                            }
                         }
                     }
                 }
@@ -151,6 +158,16 @@ public abstract class EBillingDocument_Base
             ret = verifyElecDocInst(_parameter, ret);
         }
         return ret;
+    }
+
+    public void createUBL(final Parameter parameter,
+                          final Instance eDocInst)
+        throws EFapsException
+    {
+        if (InstanceUtils.isType(eDocInst, CIEBilling.DeliveryNote) && ElectronicBilling.DELIVERYNOTE_CREATEUBL.get()) {
+            final var parameterClone = ParameterUtil.clone(parameter, ParameterValues.INSTANCE, eDocInst);
+            new UBLService().ceateUBL(parameterClone);
+        }
     }
 
     /**
@@ -198,7 +215,7 @@ public abstract class EBillingDocument_Base
             ParameterUtil.setProperty(parameter, "JasperConfigMime", Sales.CREDITNOTE_MIME.getKey());
             ParameterUtil.setProperty(parameter, "Checkin", "true");
             new CreditNote().createReport(parameter);
-        }  else if (InstanceUtils.isType(_salesDocInst, CISales.DeliveryNote)
+        } else if (InstanceUtils.isType(_salesDocInst, CISales.DeliveryNote)
                         && ElectronicBilling.DELIVERYNOTE_CREATEREPORT.get()) {
 
             final Parameter parameter = ParameterUtil.clone(_parameter, ParameterValues.INSTANCE, _salesDocInst);
@@ -333,15 +350,15 @@ public abstract class EBillingDocument_Base
             listener.afterCreate(_parameter, instances.toArray(new Instance[instances.size()]));
         }
         Context.save();
-        for(final Instance docInst : sdocInsts) {
+        for (final Instance docInst : sdocInsts) {
             createReport4Document(_parameter, docInst);
         }
         return new Return();
     }
 
     /**
-     * Check for a verification. If verify action is not passed, set status
-     * to aborted and return null.
+     * Check for a verification. If verify action is not passed, set status to
+     * aborted and return null.
      *
      * @param _parameter the parameter
      * @return true, if successful
@@ -359,7 +376,7 @@ public abstract class EBillingDocument_Base
                         || InstanceUtils.isType(_elecDocInst, CIEBilling.Reminder) && ElectronicBilling.REMINDER_VERIFY
                                         .exists()
                         || InstanceUtils.isType(_elecDocInst, CIEBilling.DeliveryNote)
-                            && ElectronicBilling.DELIVERYNOTE_VERIFY.exists()) {
+                                        && ElectronicBilling.DELIVERYNOTE_VERIFY.exists()) {
             Properties props = null;
             if (InstanceUtils.isType(_elecDocInst, CIEBilling.Invoice)) {
                 props = ElectronicBilling.INVOICE_VERIFY.get();

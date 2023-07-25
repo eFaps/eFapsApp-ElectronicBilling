@@ -56,7 +56,8 @@ public final class ElectronicBilling
                     .addDefaultValue(CISales.DeliveryNote.getType().getName(),
                                     CIEBilling.DeliveryNote.getType().getName())
                     .addDefaultValue(CIEBilling.DeliveryNote.getType().getName() + ".CreateStatus",
-                                    CIEBilling.DeliveryNoteStatus.Pending.key);
+                                    CIEBilling.DeliveryNoteStatus.Pending.key)
+                    .addDefaultValue(CISales.DeliveryNote.getType().getName() + ".NameRegexMatch", "^T.*");
 
     /** See description. */
     @EFapsSysConfAttribute
@@ -93,13 +94,12 @@ public final class ElectronicBilling
                     .description("Activate the evaluation for mails.")
                     .defaultValue(false);
 
-
     @EFapsSysConfAttribute
     public static final StringSysConfAttribute DELIVERYNOTE_CREATEONSTATUS = new StringSysConfAttribute()
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
                     .key(ElectronicBilling.BASE + "DeliveryNote.CreateOnStatusChange")
                     .description("Activate the mechanism to create the electronic billing document on status change")
-                    .defaultValue(CISales.DeliveryNoteStatus.Closed.key);
+                    .defaultValue(CISales.DeliveryNoteStatus.Open.key);
 
     /** See description. */
     @EFapsSysConfAttribute
@@ -119,10 +119,18 @@ public final class ElectronicBilling
 
     /** See description. */
     @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute DELIVERYNOTE_CREATEUBL= new BooleanSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "DeliveryNote.CreateUBL")
+                    .description("Activate the creation of the UBL for DeliveryNote")
+                    .defaultValue(true);
+
+    /** See description. */
+    @EFapsSysConfAttribute
     public static final PropertiesSysConfAttribute DELIVERYNOTE_VERIFY= new PropertiesSysConfAttribute()
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
                     .key(ElectronicBilling.BASE + "DeliveryNote.Verification")
-                    .description("Properties that permit to define when an Electronic DeliveryNote should be aborted.");
+                    .description("Properties that permit to define when an Electronic DeliveryNote should not be created.");
 
     @EFapsSysConfAttribute
     public static final StringSysConfAttribute DELIVERYNOTE_ENDPOINTURI = new StringSysConfAttribute()
@@ -389,12 +397,6 @@ public final class ElectronicBilling
                     .defaultValue(false);
 
     @EFapsSysConfAttribute
-    public static final StringSysConfAttribute UBL_FILETYPE = new StringSysConfAttribute()
-                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
-                    .key(ElectronicBilling.BASE + "ubl.FileType")
-                    .description("FileType");
-
-    @EFapsSysConfAttribute
     public static final StringSysConfAttribute UBL_RESPONSE_FILETYPE = new StringSysConfAttribute()
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
                     .key(ElectronicBilling.BASE + "ubl.ResponseFileType")
@@ -408,9 +410,6 @@ public final class ElectronicBilling
                     .addDefaultValue("UnnamedClientValue", "0000")
                     .description("Configuration for export SaleRecord\n"
                                 + "Regex4UnnamedClient:  Case insensitive Regex to mark client as 'Cliente various'");
-
-
-
 
     /**
      * @return the SystemConfigruation for Sales

@@ -73,17 +73,18 @@ public abstract class OnStatusChange_Base
      * @throws EFapsException on error
      */
     protected void createDocument(final Parameter _parameter,
-                                  final Instance _salesDocInst)
+                                  final Instance salesDocInst)
         throws EFapsException
     {
-        final Instance docInst = new EBillingDocument().createDocument(_parameter, _salesDocInst);
+        final Instance docInst = new EBillingDocument().createDocument(_parameter, salesDocInst);
         if (InstanceUtils.isValid(docInst)) {
             for (final IOnDocument listener : Listener.get().<IOnDocument>invoke(IOnDocument.class)) {
                 listener.afterCreate(_parameter, docInst);
             }
         }
         Context.save();
-        new EBillingDocument().createReport4Document(_parameter, _salesDocInst);
+        new EBillingDocument().createUBL(_parameter, docInst);
+        new EBillingDocument().createReport4Document(_parameter, salesDocInst);
     }
 
 

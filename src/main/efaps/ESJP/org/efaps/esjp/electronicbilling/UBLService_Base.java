@@ -219,16 +219,9 @@ public abstract class UBLService_Base
                                   final File file)
         throws EFapsException
     {
-        final var ublFileTypeStr = ElectronicBilling.UBL_FILETYPE.get();
-        if (StringUtils.isNotEmpty(ublFileTypeStr)) {
-            Type ublFileType;
-            if (UUIDUtil.isUUID(ublFileTypeStr)) {
-                ublFileType = Type.get(UUID.fromString(ublFileTypeStr));
-            } else {
-                ublFileType = Type.get(ublFileTypeStr);
-            }
+        if (getUBLFileType() != null) {
             final var fileInst = EQL.builder()
-                            .insert(ublFileType)
+                            .insert(getUBLFileType())
                             .set(CIEBilling.UBLFileAbstract.DocumentLinkAbstract, eDocInst)
                             .stmt()
                             .execute();
@@ -240,6 +233,11 @@ public abstract class UBLService_Base
                 LOG.error("Catched", e);
             }
         }
+    }
+
+    protected CIType getUBLFileType()
+    {
+        return CIEBilling.UBLFile;
     }
 
     public File createInvoice(final Instance docInstance)
@@ -320,7 +318,7 @@ public abstract class UBLService_Base
         final var eval = EQL.builder().print(docInstance)
                         .attribute(CISales.DeliveryNote.Name, CISales.DeliveryNote.Date, CISales.DeliveryNote.DueDate,
                                         CISales.DeliveryNote.Created, CISales.DeliveryNote.DriverLink,
-                                        CISales.DeliveryNote.VehicleLink)
+                                        CISales.DeliveryNote.VehicleLink, CISales.DeliveryNote.CrossWeight)
                         .linkto(CISales.DocumentSumAbstract.Contact).instance().as("contactInstance")
                         .linkto(CISales.DeliveryNote.TransferReason)
                         .attribute(CISales.AttributeDefinitionTransferReason.MappingKey).as("transferReason")
@@ -365,19 +363,23 @@ public abstract class UBLService_Base
                         .addTransportUnit(getTransport(ret,thirdParty,eval))
                         .addStage(stage);
 
-        evalWeight(docInstance, ret);
+        evalWeight(docInstance, ret, eval);
         stage.withDriver(getDriver(eval.get(CISales.DeliveryNote.DriverLink)));
         return ret;
     }
 
     protected void evalWeight(final Instance docInstance,
-                              final Shipment shipment)
+                              final Shipment shipment,
+                              final Evaluator eval)
         throws EFapsException
     {
         BigDecimal crossWeight = BigDecimal.ZERO;
         UoM uoM = null;
-        if (Products.STANDART_CONV.exists()) {
-            final var eval = EQL.builder()
+        final BigDecimal weight = eval.get(CISales.DeliveryNote.CrossWeight);
+        if (weight != null) {
+            crossWeight = weight;
+        } else if (Products.STANDART_CONV.exists()) {
+            final var posEval = EQL.builder()
                             .print()
                             .query(CISales.DeliveryNotePosition)
                             .where()
@@ -388,10 +390,10 @@ public abstract class UBLService_Base
                             .as("prodInst")
                             .evaluate();
 
-            while (eval.next()) {
-                final Instance prodInst = eval.get("prodInst");
-                final var qty = eval.<BigDecimal>get(CISales.DeliveryNotePosition.Quantity);
-                final var uomId = eval.<Long>get(CISales.DeliveryNotePosition.UoM);
+            while (posEval.next()) {
+                final Instance prodInst = posEval.get("prodInst");
+                final var qty = posEval.<BigDecimal>get(CISales.DeliveryNotePosition.Quantity);
+                final var uomId = posEval.<Long>get(CISales.DeliveryNotePosition.UoM);
                 final var uom = Dimension.getUoM(uomId);
                 final var conversion =  Conversion.convert(ConversionType.TRANSPORTWEIGHT, prodInst, qty, uom);
                 crossWeight = crossWeight.add(conversion.getValue());
