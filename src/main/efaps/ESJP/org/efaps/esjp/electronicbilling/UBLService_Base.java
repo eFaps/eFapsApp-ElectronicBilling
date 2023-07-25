@@ -96,6 +96,7 @@ import org.efaps.ubl.documents.interfaces.IInstallment;
 import org.efaps.ubl.documents.interfaces.ILine;
 import org.efaps.ubl.documents.interfaces.IPaymentTerms;
 import org.efaps.ubl.documents.interfaces.ITaxEntry;
+import org.efaps.ubl.documents.values.DeliveryNoteInstruction;
 import org.efaps.ubl.dto.SignResponseDto;
 import org.efaps.ubl.reader.ApplicationResponseReader;
 import org.efaps.util.EFapsException;
@@ -342,13 +343,13 @@ public abstract class UBLService_Base
                         .withSupplier(getSupplier())
                         .withCustomer(getCustomer(contactInstance))
                         .withLines(getDeliveryNoteLines(docInstance))
-                        .withShipment(getShipment(docInstance, eval, thirdParty));
+                        .withShipment(getShipment(docInstance, thirdParty, eval));
         return ubl;
     }
 
     protected Shipment getShipment(final Instance docInstance,
-                                   final Evaluator eval,
-                                   final boolean thirdParty)
+                                   final boolean thirdParty,
+                                   final Evaluator eval)
         throws EFapsException
     {
         final var ret = new Shipment();
@@ -361,14 +362,10 @@ public abstract class UBLService_Base
         ret.withHandlingCode(eval.get("transferReason"))
                         .withHandlingInstructions(eval.get("transferReasonDescr"))
                         .withDelivery(getDelivery(eval))
-                        .addTransportUnit(getTransport(ret, eval))
+                        .addTransportUnit(getTransport(ret,thirdParty,eval))
                         .addStage(stage);
 
         evalWeight(docInstance, ret);
-
-        if (thirdParty) {
-            ret.addInstruction("SUNAT_Envio_IndicadorVehiculoConductoresTransp");
-        }
         stage.withDriver(getDriver(eval.get(CISales.DeliveryNote.DriverLink)));
         return ret;
     }
@@ -411,15 +408,17 @@ public abstract class UBLService_Base
     }
 
     protected Transport getTransport(final Shipment shipment,
+                                     final boolean thirdParty,
                                      final Evaluator eval)
         throws EFapsException
     {
         final var ret = new Transport()
-                        .addEquipment(getEquipment(shipment, eval.get(CISales.DeliveryNote.VehicleLink)));
+                        .addEquipment(getEquipment(shipment, thirdParty, eval.get(CISales.DeliveryNote.VehicleLink)));
         return ret;
     }
 
     protected Equipment getEquipment(final Shipment shipment,
+                                     final boolean thirdParty,
                                      final Long vehicleId)
         throws EFapsException
     {
@@ -435,12 +434,16 @@ public abstract class UBLService_Base
                                         CIContacts.AttributeAbstractClassCarrier.MinorVehicle)
                         .evaluate();
         final var equipment = new Equipment()
-                        .withLicensePlate(eval.get(CIContacts.AttributeAbstractClassCarrier.Registration))
-                        .withCertificate(eval.get(CIContacts.AttributeAbstractClassCarrier.Certificate));
+                        .withLicensePlate(eval.get(CIContacts.AttributeAbstractClassCarrier.Registration));
 
-        final Boolean isMinor = eval.get(CIContacts.AttributeAbstractClassCarrier.MinorVehicle);
-        if (isMinor != null && isMinor) {
-            shipment.addInstruction("SUNAT_Envio_IndicadorTrasladoVehiculoM1L");
+        if (thirdParty) {
+            equipment.withCertificate(eval.get(CIContacts.AttributeAbstractClassCarrier.Certificate));
+            final Boolean isMinor = eval.get(CIContacts.AttributeAbstractClassCarrier.MinorVehicle);
+            if (isMinor != null && isMinor) {
+                shipment.addInstruction(DeliveryNoteInstruction.VEHICLE_MINOR.getName());
+            } else {
+                shipment.addInstruction(DeliveryNoteInstruction.VEHICLE_CONDUCTOR.getName());
+            }
         }
         return equipment;
     }
@@ -527,7 +530,8 @@ public abstract class UBLService_Base
                         .withDOI(eval.get(CIContacts.AttributeAbstractClassCarrierDriver.DocumentOfIdentity))
                         .withFirstName(eval.get(CIContacts.AttributeAbstractClassCarrierDriver.Name))
                         .withFamilyName(eval.get(CIContacts.AttributeAbstractClassCarrierDriver.LastName))
-                        .withLicense(eval.get(CIContacts.AttributeAbstractClassCarrierDriver.License));
+                        .withLicense(eval.get(CIContacts.AttributeAbstractClassCarrierDriver.License))
+                        .withJobTitle("Principal");
         return driver;
     }
 

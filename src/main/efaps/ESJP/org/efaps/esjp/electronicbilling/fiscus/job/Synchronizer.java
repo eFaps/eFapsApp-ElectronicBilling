@@ -97,7 +97,7 @@ public class Synchronizer
                             LOG.info("dto: {}", dto);
                             if (dto instanceof DeliveryNoteResponseDto) {
                                 final var ticketNumber = ((DeliveryNoteResponseDto) dto).getNumTicket();
-                                setStatus(eDocInst, "Issued", ticketNumber);
+                                setStatus(eDocInst, "Issued", ticketNumber, null);
                             }
                             logResponse(eDocInst, dto);
                         }
@@ -129,7 +129,9 @@ public class Synchronizer
                     final var dto =  restClient.getStatus(identifier);
                     LOG.info("dto: {}", dto);
                     if (dto instanceof StatusResponseDto) {
-                        ((StatusResponseDto) dto).getConfirmation();
+                        if (((StatusResponseDto) dto).getCode().equals(0)) {
+                            setStatus(eDocInst, "Successful", null, ((StatusResponseDto) dto).getConfirmation());
+                        }
                     }
                     logResponse(eDocInst, dto);
                 }
@@ -164,10 +166,10 @@ public class Synchronizer
         return mapper;
     }
 
-
     public void setStatus(final Instance _eDocInst,
                           final String status,
-                          final String identifier)
+                          final String identifier,
+                          final String confirmation)
         throws EFapsException
     {
         CIStatus targetStatus;
@@ -189,7 +191,7 @@ public class Synchronizer
                     targetStatus = CIEBilling.ReceiptStatus.Successful;
                     break;
             }
-        } else if (InstanceUtils.isType(_eDocInst, CIEBilling.CreditNote)){
+        } else if (InstanceUtils.isType(_eDocInst, CIEBilling.CreditNote)) {
             switch (status) {
                 case "Issued":
                     targetStatus = CIEBilling.CreditNoteStatus.Issued;
@@ -208,10 +210,14 @@ public class Synchronizer
                     break;
             }
         }
-        EQL.builder().update(_eDocInst)
-                        .set(CIEBilling.DocumentAbstract.StatusAbstract, targetStatus)
-                        .set(CIEBilling.DocumentAbstract.Identifier, identifier)
-                        .stmt()
-                        .execute();
+        final var eql = EQL.builder().update(_eDocInst)
+                        .set(CIEBilling.DocumentAbstract.StatusAbstract, targetStatus);
+        if (identifier != null) {
+            eql.set(CIEBilling.DocumentAbstract.Identifier, identifier);
+        }
+        if (confirmation != null) {
+            eql.set(CIEBilling.DocumentAbstract.Confirmation, StringUtils.left(confirmation, 60));
+        }
+        eql.stmt().execute();
     }
 }
