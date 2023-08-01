@@ -21,10 +21,9 @@ import org.efaps.admin.event.Parameter;
 import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsListener;
 import org.efaps.admin.program.esjp.EFapsUUID;
+import org.efaps.db.Instance;
 import org.efaps.eql.EQL;
-import org.efaps.esjp.common.listener.ITypedClass;
 import org.efaps.esjp.db.InstanceUtils;
-import org.efaps.esjp.erp.CommonDocument_Base.CreatedDoc;
 import org.efaps.esjp.erp.listener.IOnCreateDocument;
 import org.efaps.util.EFapsException;
 
@@ -38,30 +37,22 @@ public class OnCreateDocument
     @Override
     public int getWeight()
     {
-        return 0;
+        return 10;
     }
 
     @Override
     public void afterCreate(final Parameter parameter,
-                            final CreatedDoc createdDoc)
+                            final Instance instance)
         throws EFapsException
     {
-        if (InstanceUtils.isValid(createdDoc.getInstance())) {
-            final var status = EQL.builder().print(createdDoc.getInstance())
+        if (InstanceUtils.isValid(instance)) {
+            final var status = EQL.builder().print(instance)
                             .status().as("status")
                             .evaluate()
                             .get("status");
             if (status != null) {
-                new OnStatusChange().afterSetStatus(parameter, createdDoc.getInstance(), (Status) status);
+                new OnStatusChange().afterSetStatus(parameter, instance, (Status) status);
             }
         }
-    }
-
-    @Override
-    public CharSequence getJavaScript4Doc(final ITypedClass _typeClass,
-                                          final Parameter _parameter)
-        throws EFapsException
-    {
-        return null;
     }
 }
