@@ -96,6 +96,7 @@ import org.efaps.ubl.documents.interfaces.IInstallment;
 import org.efaps.ubl.documents.interfaces.ILine;
 import org.efaps.ubl.documents.interfaces.IPaymentTerms;
 import org.efaps.ubl.documents.interfaces.ITaxEntry;
+import org.efaps.ubl.documents.values.CreditNoteTypeCode;
 import org.efaps.ubl.documents.values.DeliveryNoteInstruction;
 import org.efaps.ubl.dto.SignResponseDto;
 import org.efaps.ubl.reader.ApplicationResponseReader;
@@ -276,14 +277,18 @@ public abstract class UBLService_Base
         throws EFapsException
     {
         File file = null;
-        final var ublInvoice = new CreditNote();
-        final var ubl = fill(docInstance, ublInvoice, false);
-        final var ublXml = ubl.getUBLXml();
+        var ublCreditNote = new CreditNote();
+        if (ElectronicBilling.CREDITNOTE_TRYDETAILED.get()) {
+            ublCreditNote = (CreditNote) fill(docInstance, ublCreditNote, false);
+        } else {
+            ublCreditNote = fillCreditNote(docInstance, ublCreditNote);
+        }
+        final var ublXml = ublCreditNote.getUBLXml();
         LOG.info("UBL: {}", ublXml);
         final var signResponse = sign(ublXml);
         LOG.info("signResponse: Hash {}\n UBL {}", signResponse.getHash(), signResponse.getUbl());
         try {
-            file = new FileUtil().getFile(ubl.getNumber(), "xml");
+            file = new FileUtil().getFile(ublCreditNote.getNumber(), "xml");
             FileUtils.writeStringToFile(file, signResponse.getUbl(), StandardCharsets.UTF_8);
         } catch (final IOException e) {
             LOG.error("Catched", e);
@@ -309,6 +314,142 @@ public abstract class UBLService_Base
         }
         return file;
     }
+
+    protected CreditNote fillCreditNote(final Instance docInstance,
+                                        final CreditNote ubl)
+        throws EFapsException
+    {
+        final var eval = EQL.builder().print(docInstance)
+                        .attribute(CISales.CreditNote.Name, CISales.CreditNote.Taxes,
+                                        CISales.CreditNote.RateCurrencyId, CISales.CreditNote.Date,
+                                        CISales.CreditNote.RateCrossTotal,
+                                        CISales.CreditNote.RateNetTotal,
+                                        CISales.CreditNote.CrossTotal)
+                        .linkto(CISales.CreditNote.Contact).instance().as("contactInstance")
+                        .linkto(CISales.CreditNote.CreditReason)
+                            .attribute(CISales.AttributeDefinitionCreditReason.Value).as("creditReason")
+                        .evaluate();
+
+        final var taxes = eval.<Taxes>get(CISales.DocumentSumAbstract.Taxes);
+        final Instance contactInstance = eval.get("contactInstance");
+        final BigDecimal crossTotal = eval.get(CISales.DocumentSumAbstract.RateCrossTotal);
+        final var currencyInst = CurrencyInst.get(eval.<Long>get(CISales.DocumentSumAbstract.RateCurrencyId));
+        final LocalDate date = eval.get(CISales.DocumentSumAbstract.Date);
+
+        final var paymentMethod = getPaymentMethod(docInstance);
+
+        final String creditReason = eval.get("creditReason");
+        CreditNoteTypeCode typeCode;
+        switch (creditReason) {
+            case "01":
+                typeCode = CreditNoteTypeCode.C01;
+                break;
+            case "02":
+                typeCode = CreditNoteTypeCode.C02;
+                break;
+            case "03":
+                typeCode = CreditNoteTypeCode.C03;
+                break;
+            case "04":
+                typeCode = CreditNoteTypeCode.C04;
+                break;
+            case "05":
+                typeCode = CreditNoteTypeCode.C05;
+                break;
+            case "06":
+                typeCode = CreditNoteTypeCode.C06;
+                break;
+            case "07":
+                typeCode = CreditNoteTypeCode.C07;
+                break;
+            case "08":
+                typeCode = CreditNoteTypeCode.C08;
+                break;
+            case "09":
+                typeCode = CreditNoteTypeCode.C09;
+                break;
+            case "10":
+                typeCode = CreditNoteTypeCode.C10;
+                break;
+            case "11":
+                typeCode = CreditNoteTypeCode.C11;
+                break;
+            case "12":
+                typeCode = CreditNoteTypeCode.C12;
+                break;
+            case "13":
+                typeCode = CreditNoteTypeCode.C13;
+                break;
+            default:
+                typeCode = CreditNoteTypeCode.C01;
+        }
+        ubl.setCreditNoteTypeCode(typeCode);
+
+        ubl.withNumber(eval.get(CISales.DocumentSumAbstract.Name))
+                        .withCurrency(currencyInst.getISOCode())
+                        .withDate(date)
+                        .withCrossTotal(crossTotal)
+                        .withNetTotal(eval.get(CISales.DocumentSumAbstract.RateNetTotal))
+                        .withSupplier(getSupplier())
+                        .withCustomer(getCustomer(contactInstance))
+                        .withTaxes(getTaxes(taxes, false, false))
+                        .withPaymentTerms(new IPaymentTerms()
+                        {
+
+                            @Override
+                            public boolean isCredit()
+                            {
+                                return !paymentMethod.isCash();
+                            }
+
+                            @Override
+                            public BigDecimal getTotal()
+                            {
+                                return crossTotal;
+                            }
+
+                            @Override
+                            public List<IInstallment> getInstallments()
+                            {
+                                return paymentMethod.getInstallments().stream()
+                                                .map(installment -> ((IInstallment) installment))
+                                                .collect(Collectors.toList());
+                            }
+                        });
+
+        final var line = Line.builder()
+                        .withQuantity(BigDecimal.ONE)
+                        .withSku("01")
+                        .withDescription(typeCode.getDescription())
+                        .withNetUnitPrice(ubl.getNetTotal())
+                        .withCrossUnitPrice(ubl.getCrossTotal())
+                        .withNetPrice(ubl.getNetTotal())
+                        .withCrossPrice(ubl.getCrossTotal())
+                        .withUoMCode("UND")
+                        .withTaxEntries(ubl.getTaxes())
+                        .withPriceType("01")
+                        .build();
+
+        ubl.withLines(Collections.singletonList(line));
+        final var refEval = EQL.builder().print().query(CISales.CreditNote2Invoice, CISales.CreditNote2Receipt)
+                        .where().attribute(CISales.Document2DocumentAbstract.FromAbstractLink).eq(docInstance)
+                        .select()
+                        .linkto(CISales.Document2DocumentAbstract.ToAbstractLink).instance().as("refInst")
+                        .linkto(CISales.Document2DocumentAbstract.ToAbstractLink)
+                        .attribute(CISales.DocumentAbstract.Name).as("name")
+                        .linkto(CISales.Document2DocumentAbstract.ToAbstractLink)
+                        .attribute(CISales.DocumentAbstract.Date).as("date")
+                        .evaluate();
+        refEval.next();
+        final Instance refIns = refEval.get("refInst");
+        final var reference = new Reference()
+                        .setDocType(InstanceUtils.isKindOf(refIns, CISales.Invoice) ? "01" : "03")
+                        .setNumber(refEval.get("name"))
+                        .setDate(refEval.get("date"));
+        ubl.withReference(reference);
+        return ubl;
+    }
+
 
     protected DeliveryNote fillDeliveryNote(final Instance docInstance,
                                             final DeliveryNote ubl)

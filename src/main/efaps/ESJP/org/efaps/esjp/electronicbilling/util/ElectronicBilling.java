@@ -302,6 +302,14 @@ public final class ElectronicBilling
 
     /** See description. */
     @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute CREDITNOTE_TRYDETAILED = new BooleanSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "CreditNote.TryDetailed")
+                    .description("Should the CreditNote include the detailed (if possible)")
+                    .defaultValue(false);
+
+    /** See description. */
+    @EFapsSysConfAttribute
     public static final BooleanSysConfAttribute CREDITNOTE_CREATEREPORT= new BooleanSysConfAttribute()
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
                     .key(ElectronicBilling.BASE + "CreditNote.CreateReport")
