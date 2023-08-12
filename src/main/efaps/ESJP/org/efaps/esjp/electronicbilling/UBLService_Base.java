@@ -1,5 +1,5 @@
 /**
- * Copyright 2003 - 2022 The eFaps Team
+ * Copyright 2003 - 2023 The eFaps Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -336,8 +336,6 @@ public abstract class UBLService_Base
         final var currencyInst = CurrencyInst.get(eval.<Long>get(CISales.DocumentSumAbstract.RateCurrencyId));
         final LocalDate date = eval.get(CISales.DocumentSumAbstract.Date);
 
-        final var paymentMethod = getPaymentMethod(docInstance);
-
         final String creditReason = eval.get("creditReason");
         CreditNoteTypeCode typeCode;
         switch (creditReason) {
@@ -392,30 +390,7 @@ public abstract class UBLService_Base
                         .withNetTotal(eval.get(CISales.DocumentSumAbstract.RateNetTotal))
                         .withSupplier(getSupplier())
                         .withCustomer(getCustomer(contactInstance))
-                        .withTaxes(getTaxes(taxes, false, false))
-                        .withPaymentTerms(new IPaymentTerms()
-                        {
-
-                            @Override
-                            public boolean isCredit()
-                            {
-                                return !paymentMethod.isCash();
-                            }
-
-                            @Override
-                            public BigDecimal getTotal()
-                            {
-                                return crossTotal;
-                            }
-
-                            @Override
-                            public List<IInstallment> getInstallments()
-                            {
-                                return paymentMethod.getInstallments().stream()
-                                                .map(installment -> ((IInstallment) installment))
-                                                .collect(Collectors.toList());
-                            }
-                        });
+                        .withTaxes(getTaxes(taxes, false, false));
 
         final var line = Line.builder()
                         .withQuantity(BigDecimal.ONE)
@@ -425,7 +400,7 @@ public abstract class UBLService_Base
                         .withCrossUnitPrice(ubl.getCrossTotal())
                         .withNetPrice(ubl.getNetTotal())
                         .withCrossPrice(ubl.getCrossTotal())
-                        .withUoMCode("UND")
+                        .withUoMCode("NIU")
                         .withTaxEntries(ubl.getTaxes())
                         .withPriceType("01")
                         .build();
