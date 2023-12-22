@@ -76,6 +76,7 @@ import org.efaps.ubl.documents.AbstractDocument;
 import org.efaps.ubl.documents.CreditNote;
 import org.efaps.ubl.documents.DeliveryNote;
 import org.efaps.ubl.documents.Invoice;
+import org.efaps.ubl.documents.Receipt;
 import org.efaps.ubl.documents.elements.AdditionalItemProperty;
 import org.efaps.ubl.documents.elements.Carrier;
 import org.efaps.ubl.documents.elements.Customer;
@@ -193,6 +194,7 @@ public abstract class UBLService_Base
                         .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract).instance().as("docInstance")
                         .evaluate();
         final Instance docInstance = eval.get("docInstance");
+        LOG.info("instance {}", docInstance);
         if (InstanceUtils.isType(docInstance, CISales.Invoice)) {
             final var file = createInvoice(docInstance);
             checkInUBLFile(_parameter, instance, file);
@@ -205,9 +207,14 @@ public abstract class UBLService_Base
             ret.put(ReturnValues.VALUES, file);
             ret.put(ReturnValues.TRUE, true);
         }
-        LOG.info("instance {}", docInstance);
         if (InstanceUtils.isType(docInstance, CISales.DeliveryNote)) {
             final var file = createDeliveryNote(docInstance);
+            checkInUBLFile(_parameter, instance, file);
+            ret.put(ReturnValues.VALUES, file);
+            ret.put(ReturnValues.TRUE, true);
+        }
+        if (InstanceUtils.isType(docInstance, CISales.Receipt)) {
+            final var file = createReceipt(docInstance);
             checkInUBLFile(_parameter, instance, file);
             ret.put(ReturnValues.VALUES, file);
             ret.put(ReturnValues.TRUE, true);
@@ -240,6 +247,26 @@ public abstract class UBLService_Base
     {
         return CIEBilling.UBLFile;
     }
+
+    public File createReceipt(final Instance docInstance)
+        throws EFapsException
+    {
+        File file = null;
+        final var ublReceipt = new Receipt();
+        final var ubl = fill(docInstance, ublReceipt, false);
+        final var ublXml = ubl.getUBLXml();
+        LOG.info("UBL: {}", ublXml);
+        final var signResponse = sign(ublXml);
+        LOG.info("signResponse: Hash {}\n UBL {}", signResponse.getHash(), signResponse.getUbl());
+        try {
+            file = new FileUtil().getFile(ubl.getNumber(), "xml");
+            FileUtils.writeStringToFile(file, signResponse.getUbl(), StandardCharsets.UTF_8);
+        } catch (final IOException e) {
+            LOG.error("Catched", e);
+        }
+        return file;
+    }
+
 
     public File createInvoice(final Instance docInstance)
         throws EFapsException
@@ -337,50 +364,22 @@ public abstract class UBLService_Base
         final LocalDate date = eval.get(CISales.DocumentSumAbstract.Date);
 
         final String creditReason = eval.get("creditReason");
-        CreditNoteTypeCode typeCode;
-        switch (creditReason) {
-            case "01":
-                typeCode = CreditNoteTypeCode.C01;
-                break;
-            case "02":
-                typeCode = CreditNoteTypeCode.C02;
-                break;
-            case "03":
-                typeCode = CreditNoteTypeCode.C03;
-                break;
-            case "04":
-                typeCode = CreditNoteTypeCode.C04;
-                break;
-            case "05":
-                typeCode = CreditNoteTypeCode.C05;
-                break;
-            case "06":
-                typeCode = CreditNoteTypeCode.C06;
-                break;
-            case "07":
-                typeCode = CreditNoteTypeCode.C07;
-                break;
-            case "08":
-                typeCode = CreditNoteTypeCode.C08;
-                break;
-            case "09":
-                typeCode = CreditNoteTypeCode.C09;
-                break;
-            case "10":
-                typeCode = CreditNoteTypeCode.C10;
-                break;
-            case "11":
-                typeCode = CreditNoteTypeCode.C11;
-                break;
-            case "12":
-                typeCode = CreditNoteTypeCode.C12;
-                break;
-            case "13":
-                typeCode = CreditNoteTypeCode.C13;
-                break;
-            default:
-                typeCode = CreditNoteTypeCode.C01;
-        }
+        final CreditNoteTypeCode typeCode = switch (creditReason) {
+            case "01" -> CreditNoteTypeCode.C01;
+            case "02" -> CreditNoteTypeCode.C02;
+            case "03" -> CreditNoteTypeCode.C03;
+            case "04" -> CreditNoteTypeCode.C04;
+            case "05" -> CreditNoteTypeCode.C05;
+            case "06" -> CreditNoteTypeCode.C06;
+            case "07" -> CreditNoteTypeCode.C07;
+            case "08" -> CreditNoteTypeCode.C08;
+            case "09" -> CreditNoteTypeCode.C09;
+            case "10" -> CreditNoteTypeCode.C10;
+            case "11" -> CreditNoteTypeCode.C11;
+            case "12" -> CreditNoteTypeCode.C12;
+            case "13" -> CreditNoteTypeCode.C13;
+            default -> CreditNoteTypeCode.C01;
+        };
         ubl.setCreditNoteTypeCode(typeCode);
 
         ubl.withNumber(eval.get(CISales.DocumentSumAbstract.Name))
@@ -1021,15 +1020,11 @@ public abstract class UBLService_Base
                 org.efaps.ubl.documents.values.TaxType taxType;
                 final var tax = Tax_Base.get(entry.getCatUUID(), entry.getUUID());
 
-                switch (tax.getTaxType()) {
-                    case PERUNIT:
-                        taxType = org.efaps.ubl.documents.values.TaxType.PERUNIT;
-                        break;
-                    case ADVALOREM:
-                    default:
-                        taxType = org.efaps.ubl.documents.values.TaxType.ADVALOREM;
-                        break;
-                }
+                taxType = switch (tax.getTaxType()) {
+                    case PERUNIT -> org.efaps.ubl.documents.values.TaxType.PERUNIT;
+                    case ADVALOREM -> org.efaps.ubl.documents.values.TaxType.ADVALOREM;
+                    default -> org.efaps.ubl.documents.values.TaxType.ADVALOREM;
+                };
                 ret.add(org.efaps.esjp.electronicbilling.entities.TaxEntry.builder()
                                 .withTaxType(taxType)
                                 .withTaxExemptionReasonCode(taxExemptionReasonCode)

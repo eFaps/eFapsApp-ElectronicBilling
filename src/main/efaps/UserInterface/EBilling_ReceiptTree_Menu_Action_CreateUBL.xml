@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?><!--
 
-  Copyright 2003 - 2016 The eFaps Team
+  Copyright 2003 - 2022 The eFaps Team
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -15,19 +15,21 @@
   limitations under the License.
 
 -->
-<ui-menu xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<ui-command xmlns="http://www.efaps.org/xsd"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>c9eb9636-715b-4734-85ba-850c1bb0062e</uuid>
+    <uuid>3791d36b-d738-46e9-9ffc-4201baa1b143</uuid>
     <file-application>eFapsApp-ElectronicBilling</file-application>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>EBilling_ReceiptTree_Menu_Action</name>
-        <childs>
-            <child>EBilling_ReceiptTree_Menu_Action_Resend</child>
-            <child>EBilling_ReceiptTree_Menu_Action_Cancel</child>
-            <child>EBilling_ReceiptTree_Menu_Action_SetSuccessful</child>
-            <child>EBilling_ReceiptTree_Menu_Action_CreateUBL</child>
-            <child>ERP_DocumentAbstractTree_Action_EditStatus</child>
-        </childs>
+        <name>EBilling_ReceiptTree_Menu_Action_CreateUBL</name>
+        <access>
+            <role>EBilling_Admin</role>
+        </access>
+        <target>
+            <execute method="ceateUBL"
+                program="org.efaps.esjp.electronicbilling.UBLService" />
+        </target>
+        <property name="TargetShowFile">true</property>
     </definition>
-</ui-menu>
+</ui-command>
