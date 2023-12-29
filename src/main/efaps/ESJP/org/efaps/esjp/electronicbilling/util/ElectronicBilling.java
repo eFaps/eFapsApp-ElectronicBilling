@@ -1,5 +1,6 @@
 package org.efaps.esjp.electronicbilling.util;
 
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import org.efaps.admin.common.SystemConfiguration;
@@ -408,6 +409,13 @@ public final class ElectronicBilling
     public static final StringSysConfAttribute UBL_RESPONSE_FILETYPE = new StringSysConfAttribute()
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
                     .key(ElectronicBilling.BASE + "ubl.ResponseFileType")
+                    .description("ResponseFileType");
+
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute UBL_ENCODING = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "ubl.Encoding")
+                    .defaultValue(StandardCharsets.UTF_8.name())
                     .description("ResponseFileType");
 
     @EFapsSysConfAttribute

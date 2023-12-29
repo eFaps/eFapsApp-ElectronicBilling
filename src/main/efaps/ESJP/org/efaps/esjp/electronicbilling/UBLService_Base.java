@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -252,7 +253,7 @@ public abstract class UBLService_Base
         throws EFapsException
     {
         File file = null;
-        final var ublReceipt = new Receipt();
+        final var ublReceipt = new Receipt().withEncoding(Charset.forName(ElectronicBilling.UBL_ENCODING.get()));
         final var ubl = fill(docInstance, ublReceipt, false);
         final var ublXml = ubl.getUBLXml();
         LOG.info("UBL: {}", ublXml);
@@ -266,7 +267,6 @@ public abstract class UBLService_Base
         }
         return file;
     }
-
 
     public File createInvoice(final Instance docInstance)
         throws EFapsException
@@ -285,7 +285,7 @@ public abstract class UBLService_Base
                 }
                 return total;
             }
-        };
+        }.withEncoding(Charset.forName(ElectronicBilling.UBL_ENCODING.get()));
         final var ubl = fill(docInstance, ublInvoice, freeOfCharge);
         final var ublXml = ubl.getUBLXml();
         LOG.info("UBL: {}", ublXml);
@@ -304,7 +304,7 @@ public abstract class UBLService_Base
         throws EFapsException
     {
         File file = null;
-        var ublCreditNote = new CreditNote();
+        var ublCreditNote = new CreditNote().withEncoding(Charset.forName(ElectronicBilling.UBL_ENCODING.get()));
         if (ElectronicBilling.CREDITNOTE_TRYDETAILED.get()) {
             ublCreditNote = (CreditNote) fill(docInstance, ublCreditNote, false);
         } else {
@@ -327,7 +327,8 @@ public abstract class UBLService_Base
         throws EFapsException
     {
         File file = null;
-        final var ublDeliveryNote = new DeliveryNote();
+        final var ublDeliveryNote = new DeliveryNote()
+                        .withEncoding(Charset.forName(ElectronicBilling.UBL_ENCODING.get()));
         final var ubl = fillDeliveryNote(docInstance, ublDeliveryNote);
         final var ublXml = ubl.getUBLXml();
         LOG.info("UBL: {}", ublXml);
@@ -354,7 +355,7 @@ public abstract class UBLService_Base
                                         CISales.CreditNote.CrossTotal)
                         .linkto(CISales.CreditNote.Contact).instance().as("contactInstance")
                         .linkto(CISales.CreditNote.CreditReason)
-                            .attribute(CISales.AttributeDefinitionCreditReason.Value).as("creditReason")
+                        .attribute(CISales.AttributeDefinitionCreditReason.Value).as("creditReason")
                         .evaluate();
 
         final var taxes = eval.<Taxes>get(CISales.DocumentSumAbstract.Taxes);
@@ -424,7 +425,6 @@ public abstract class UBLService_Base
         return ubl;
     }
 
-
     protected DeliveryNote fillDeliveryNote(final Instance docInstance,
                                             final DeliveryNote ubl)
         throws EFapsException
@@ -475,7 +475,7 @@ public abstract class UBLService_Base
         ret.withHandlingCode(eval.get("transferReason"))
                         .withHandlingInstructions(eval.get("transferReasonDescr"))
                         .withDelivery(getDelivery(eval))
-                        .addTransportUnit(getTransport(ret,thirdParty,eval))
+                        .addTransportUnit(getTransport(ret, thirdParty, eval))
                         .addStage(stage);
 
         evalWeight(docInstance, ret, eval);
@@ -510,7 +510,7 @@ public abstract class UBLService_Base
                 final var qty = posEval.<BigDecimal>get(CISales.DeliveryNotePosition.Quantity);
                 final var uomId = posEval.<Long>get(CISales.DeliveryNotePosition.UoM);
                 final var uom = Dimension.getUoM(uomId);
-                final var conversion =  Conversion.convert(ConversionType.TRANSPORTWEIGHT, prodInst, qty, uom);
+                final var conversion = Conversion.convert(ConversionType.TRANSPORTWEIGHT, prodInst, qty, uom);
                 crossWeight = crossWeight.add(conversion.getValue());
                 if (uoM == null) {
                     uoM = conversion.getUoM();
@@ -521,7 +521,7 @@ public abstract class UBLService_Base
             crossWeight = crossWeight.setScale(3, RoundingMode.HALF_UP);
         }
         shipment.withCrossWeight(crossWeight)
-            .withCrossWeightUoM(uoM == null ? "KGM" : uoM.getCommonCode());
+                        .withCrossWeightUoM(uoM == null ? "KGM" : uoM.getCommonCode());
     }
 
     protected Transport getTransport(final Shipment shipment,
@@ -592,7 +592,7 @@ public abstract class UBLService_Base
                             .evaluate();
             if (locEval.next()) {
                 address = locEval.get(CIContacts.ClassLocation.LocationAdressStreet) + " - "
-                            + locEval.get(CIContacts.ClassLocation.LocationAdressCity);
+                                + locEval.get(CIContacts.ClassLocation.LocationAdressCity);
                 geoLocationId = locEval.get("ubigeo");
             }
         } else {
@@ -606,7 +606,7 @@ public abstract class UBLService_Base
                             .evaluate();
             if (locEval.next()) {
                 address = locEval.get(CIContacts.SubContactClassLocation.LocationAdressStreet) + " - "
-                            + locEval.get(CIContacts.SubContactClassLocation.LocationAdressCity);
+                                + locEval.get(CIContacts.SubContactClassLocation.LocationAdressCity);
                 geoLocationId = locEval.get("ubigeo");
             }
         }
@@ -614,6 +614,7 @@ public abstract class UBLService_Base
         final var geoLocation = geoLocationId;
         return new IAddress()
         {
+
             @Override
             public String getAddressLine()
             {
@@ -628,20 +629,22 @@ public abstract class UBLService_Base
         };
     }
 
-    protected Driver getDriver(final Long driverId) throws EFapsException {
+    protected Driver getDriver(final Long driverId)
+        throws EFapsException
+    {
         if (driverId == null) {
             LOG.error("No driver for DeliveryNote found");
         }
         // Contacts_ClassCarrier/DriverSet
         final var eval = EQL.builder()
                         .print(Instance.get(UUID.fromString("09ee80a0-e8c0-41d2-b272-c30a32733fea"), driverId))
-            .linkto(CIContacts.AttributeAbstractClassCarrierDriver.DOITypeLink)
-            .attribute(CIContacts.AttributeDefinitionDOIType.MappingKey).as("doiType")
-            .attribute(CIContacts.AttributeAbstractClassCarrierDriver.Name,
-                            CIContacts.AttributeAbstractClassCarrierDriver.LastName,
-                            CIContacts.AttributeAbstractClassCarrierDriver.License,
-                            CIContacts.AttributeAbstractClassCarrierDriver.DocumentOfIdentity)
-            .evaluate();
+                        .linkto(CIContacts.AttributeAbstractClassCarrierDriver.DOITypeLink)
+                        .attribute(CIContacts.AttributeDefinitionDOIType.MappingKey).as("doiType")
+                        .attribute(CIContacts.AttributeAbstractClassCarrierDriver.Name,
+                                        CIContacts.AttributeAbstractClassCarrierDriver.LastName,
+                                        CIContacts.AttributeAbstractClassCarrierDriver.License,
+                                        CIContacts.AttributeAbstractClassCarrierDriver.DocumentOfIdentity)
+                        .evaluate();
         final var driver = new Driver()
                         .withDoiType(eval.get("doiType"))
                         .withDOI(eval.get(CIContacts.AttributeAbstractClassCarrierDriver.DocumentOfIdentity))
@@ -651,7 +654,6 @@ public abstract class UBLService_Base
                         .withJobTitle("Principal");
         return driver;
     }
-
 
     protected List<ILine> getDeliveryNoteLines(final Instance docInstance)
         throws EFapsException
@@ -1047,7 +1049,7 @@ public abstract class UBLService_Base
                         .withKeyAlias(ElectronicBilling.KEYSTORE_ALIAS.get())
                         .withKeyStorePwd(ElectronicBilling.KEYSTORE_PWD.get())
                         .withKeyPwd(ElectronicBilling.KEYSTORE_KEYPWD.get())
-                        .signDocument(ublXml);
+                        .signDocument(ublXml, Charset.forName(ElectronicBilling.UBL_ENCODING.get()));
     }
 
     public static class UBlSigning
