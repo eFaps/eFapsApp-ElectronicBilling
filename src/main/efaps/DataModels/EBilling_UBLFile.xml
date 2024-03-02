@@ -23,6 +23,6 @@
     <definition>
         <version-expression>(version==latest)</version-expression>
         <name>EBilling_UBLFile</name>
-        <parent>EBilling_FileAbstract</parent>
+        <parent>EBilling_UBLFileAbstract</parent>
     </definition>
 </datamodel-type>

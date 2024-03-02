@@ -25,5 +25,11 @@
         <name>EBilling_UBLFileAbstract</name>
         <parent>EBilling_FileAbstract</parent>
         <purpose abstract="true" />
+        <attribute>
+            <name>UBLHash</name>
+            <type>String</type>
+            <sqltable>EBilling_FileSQLTable</sqltable>
+            <sqlcolumn>STR1</sqlcolumn>
+        </attribute>
     </definition>
 </datamodel-type>

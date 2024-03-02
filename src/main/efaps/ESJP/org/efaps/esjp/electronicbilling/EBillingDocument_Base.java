@@ -91,15 +91,15 @@ public abstract class EBillingDocument_Base
     {
         final Instance salesDocInst = parameter.getCallInstance();
         if (InstanceUtils.isKindOf(salesDocInst, CISales.DocumentAbstract)) {
-
-            final Instance docInst = new EBillingDocument().createDocument(parameter, salesDocInst);
+            final Instance docInst = createDocument(parameter, salesDocInst);
             if (InstanceUtils.isValid(docInst)) {
                 for (final IOnDocument listener : Listener.get().<IOnDocument>invoke(IOnDocument.class)) {
                     listener.afterCreate(parameter, docInst);
                 }
             }
             Context.save();
-            new EBillingDocument().createReport4Document(parameter, salesDocInst);
+            createUBL(parameter, docInst);
+            createReport4Document(parameter, salesDocInst);
         }
     }
 
@@ -164,7 +164,13 @@ public abstract class EBillingDocument_Base
                           final Instance eDocInst)
         throws EFapsException
     {
-        if (InstanceUtils.isType(eDocInst, CIEBilling.DeliveryNote) && ElectronicBilling.DELIVERYNOTE_CREATEUBL.get()) {
+        if (InstanceUtils.isType(eDocInst, CIEBilling.DeliveryNote) && ElectronicBilling.DELIVERYNOTE_CREATEUBL.get()
+                        || InstanceUtils.isType(eDocInst, CIEBilling.Invoice)
+                                        && ElectronicBilling.INVOICE_CREATEUBL.get()
+                        || InstanceUtils.isType(eDocInst, CIEBilling.Receipt)
+                                        && ElectronicBilling.RECEIPT_CREATEUBL.get()
+                        || InstanceUtils.isType(eDocInst, CIEBilling.CreditNote)
+                                        && ElectronicBilling.CREDITNOTE_CREATEUBL.get()) {
             final var parameterClone = ParameterUtil.clone(parameter, ParameterValues.INSTANCE, eDocInst);
             new UBLService().ceateUBL(parameterClone);
         }
@@ -425,6 +431,23 @@ public abstract class EBillingDocument_Base
                     ret = null;
                 }
             }
+        }
+        return ret;
+    }
+
+    public String getHash(final Instance salesDocInst)
+        throws EFapsException
+    {
+        String ret = null;
+        final var eval = EQL.builder().print().query(CIEBilling.DocumentAbstract)
+                        .where()
+                        .attribute(CIEBilling.DocumentAbstract.DocumentLinkAbstract).eq(salesDocInst)
+                        .select()
+                        .linkfrom(CIEBilling.UBLFileAbstract.DocumentLinkAbstract)
+                        .attribute(CIEBilling.UBLFileAbstract.UBLHash).first().as("hash")
+                        .evaluate();
+        if (eval.next()) {
+            ret = eval.get("hash");
         }
         return ret;
     }

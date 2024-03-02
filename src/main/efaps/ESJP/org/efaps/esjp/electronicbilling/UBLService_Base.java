@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.efaps.admin.datamodel.Dimension;
 import org.efaps.admin.datamodel.Dimension.UoM;
 import org.efaps.admin.datamodel.Status;
@@ -196,28 +197,19 @@ public abstract class UBLService_Base
                         .evaluate();
         final Instance docInstance = eval.get("docInstance");
         LOG.info("instance {}", docInstance);
+        ImmutablePair<String, File> ublTuplet = null;
         if (InstanceUtils.isType(docInstance, CISales.Invoice)) {
-            final var file = createInvoice(docInstance);
-            checkInUBLFile(_parameter, instance, file);
-            ret.put(ReturnValues.VALUES, file);
-            ret.put(ReturnValues.TRUE, true);
+            ublTuplet = createInvoice(docInstance);
+        } else if (InstanceUtils.isType(docInstance, CISales.CreditNote)) {
+            ublTuplet = createCreditNote(docInstance);
+        } else if (InstanceUtils.isType(docInstance, CISales.DeliveryNote)) {
+            ublTuplet = createDeliveryNote(docInstance);
+        } else if (InstanceUtils.isType(docInstance, CISales.Receipt)) {
+            ublTuplet = createReceipt(docInstance);
         }
-        if (InstanceUtils.isType(docInstance, CISales.CreditNote)) {
-            final var file = createCreditNote(docInstance);
-            checkInUBLFile(_parameter, instance, file);
-            ret.put(ReturnValues.VALUES, file);
-            ret.put(ReturnValues.TRUE, true);
-        }
-        if (InstanceUtils.isType(docInstance, CISales.DeliveryNote)) {
-            final var file = createDeliveryNote(docInstance);
-            checkInUBLFile(_parameter, instance, file);
-            ret.put(ReturnValues.VALUES, file);
-            ret.put(ReturnValues.TRUE, true);
-        }
-        if (InstanceUtils.isType(docInstance, CISales.Receipt)) {
-            final var file = createReceipt(docInstance);
-            checkInUBLFile(_parameter, instance, file);
-            ret.put(ReturnValues.VALUES, file);
+        if (ublTuplet != null) {
+            checkInUBLFile(_parameter, instance, ublTuplet.getRight(), ublTuplet.left);
+            ret.put(ReturnValues.VALUES, ublTuplet.getRight());
             ret.put(ReturnValues.TRUE, true);
         }
         return ret;
@@ -225,13 +217,15 @@ public abstract class UBLService_Base
 
     protected void checkInUBLFile(final Parameter _parameter,
                                   final Instance eDocInst,
-                                  final File file)
+                                  final File file,
+                                  final String ublHash)
         throws EFapsException
     {
         if (getUBLFileType() != null) {
             final var fileInst = EQL.builder()
                             .insert(getUBLFileType())
                             .set(CIEBilling.UBLFileAbstract.DocumentLinkAbstract, eDocInst)
+                            .set(CIEBilling.UBLFileAbstract.UBLHash, ublHash)
                             .stmt()
                             .execute();
             try {
@@ -249,10 +243,10 @@ public abstract class UBLService_Base
         return CIEBilling.UBLFile;
     }
 
-    public File createReceipt(final Instance docInstance)
+    public ImmutablePair<String, File> createReceipt(final Instance docInstance)
         throws EFapsException
     {
-        File file = null;
+        ImmutablePair<String, File> response = null;
         final var ublReceipt = new Receipt().withEncoding(Charset.forName(ElectronicBilling.UBL_ENCODING.get()));
         final var ubl = fill(docInstance, ublReceipt, false);
         final var ublXml = ubl.getUBLXml();
@@ -260,18 +254,19 @@ public abstract class UBLService_Base
         final var signResponse = sign(ublXml);
         LOG.info("signResponse: Hash {}\n UBL {}", signResponse.getHash(), signResponse.getUbl());
         try {
-            file = new FileUtil().getFile(ubl.getNumber(), "xml");
+            final var file = new FileUtil().getFile(ubl.getNumber(), "xml");
             FileUtils.writeStringToFile(file, signResponse.getUbl(), StandardCharsets.UTF_8);
+            response = ImmutablePair.of(signResponse.getHash(), file);
         } catch (final IOException e) {
             LOG.error("Catched", e);
         }
-        return file;
+        return response;
     }
 
-    public File createInvoice(final Instance docInstance)
+    public ImmutablePair<String, File> createInvoice(final Instance docInstance)
         throws EFapsException
     {
-        File file = null;
+        ImmutablePair<String, File> response = null;
         final boolean freeOfCharge = isFreeOfCharge(docInstance);
         final var ublInvoice = new Invoice()
         {
@@ -292,18 +287,19 @@ public abstract class UBLService_Base
         final var signResponse = sign(ublXml);
         LOG.info("signResponse: Hash {}\n UBL {}", signResponse.getHash(), signResponse.getUbl());
         try {
-            file = new FileUtil().getFile(ubl.getNumber(), "xml");
+            final var file = new FileUtil().getFile(ubl.getNumber(), "xml");
             FileUtils.writeStringToFile(file, signResponse.getUbl(), StandardCharsets.UTF_8);
+            response = ImmutablePair.of(signResponse.getHash(), file);
         } catch (final IOException e) {
             LOG.error("Catched", e);
         }
-        return file;
+        return response;
     }
 
-    public File createCreditNote(final Instance docInstance)
+    public ImmutablePair<String, File> createCreditNote(final Instance docInstance)
         throws EFapsException
     {
-        File file = null;
+        ImmutablePair<String, File> response = null;
         var ublCreditNote = new CreditNote().withEncoding(Charset.forName(ElectronicBilling.UBL_ENCODING.get()));
         if (ElectronicBilling.CREDITNOTE_TRYDETAILED.get()) {
             ublCreditNote = (CreditNote) fill(docInstance, ublCreditNote, false);
@@ -315,18 +311,19 @@ public abstract class UBLService_Base
         final var signResponse = sign(ublXml);
         LOG.info("signResponse: Hash {}\n UBL {}", signResponse.getHash(), signResponse.getUbl());
         try {
-            file = new FileUtil().getFile(ublCreditNote.getNumber(), "xml");
+            final var file = new FileUtil().getFile(ublCreditNote.getNumber(), "xml");
             FileUtils.writeStringToFile(file, signResponse.getUbl(), StandardCharsets.UTF_8);
+            response = ImmutablePair.of(signResponse.getHash(), file);
         } catch (final IOException e) {
             LOG.error("Catched", e);
         }
-        return file;
+        return response;
     }
 
-    public File createDeliveryNote(final Instance docInstance)
+    public ImmutablePair<String, File> createDeliveryNote(final Instance docInstance)
         throws EFapsException
     {
-        File file = null;
+        ImmutablePair<String, File> response = null;
         final var ublDeliveryNote = new DeliveryNote()
                         .withEncoding(Charset.forName(ElectronicBilling.UBL_ENCODING.get()));
         final var ubl = fillDeliveryNote(docInstance, ublDeliveryNote);
@@ -335,12 +332,13 @@ public abstract class UBLService_Base
         final var signResponse = sign(ublXml);
         LOG.info("signResponse: Hash {}\n UBL {}", signResponse.getHash(), signResponse.getUbl());
         try {
-            file = new FileUtil().getFile(ubl.getNumber(), "xml");
+            final var file = new FileUtil().getFile(ubl.getNumber(), "xml");
             FileUtils.writeStringToFile(file, signResponse.getUbl(), StandardCharsets.UTF_8);
+            response = ImmutablePair.of(signResponse.getHash(), file);
         } catch (final IOException e) {
             LOG.error("Catched", e);
         }
-        return file;
+        return response;
     }
 
     protected CreditNote fillCreditNote(final Instance docInstance,

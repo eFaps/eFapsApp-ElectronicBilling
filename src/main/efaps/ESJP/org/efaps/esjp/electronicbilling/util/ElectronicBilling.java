@@ -200,6 +200,14 @@ public final class ElectronicBilling
 
     /** See description. */
     @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute INVOICE_CREATEUBL= new BooleanSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Invoice.CreateUBL")
+                    .description("Activate the creation of the UBL for Invoice")
+                    .defaultValue(true);
+
+    /** See description. */
+    @EFapsSysConfAttribute
     public static final BooleanSysConfAttribute INVOICE_CREATEREPORT= new BooleanSysConfAttribute()
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
                     .key(ElectronicBilling.BASE + "Invoice.CreateReport")
@@ -227,6 +235,14 @@ public final class ElectronicBilling
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
                     .key(ElectronicBilling.BASE + "Receipt.Activate")
                     .description("Activate Receipt")
+                    .defaultValue(true);
+
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute RECEIPT_CREATEUBL= new BooleanSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Receipt.CreateUBL")
+                    .description("Activate the creation of the UBL for Receipt")
                     .defaultValue(true);
 
     /** See description. */
@@ -308,6 +324,13 @@ public final class ElectronicBilling
                     .key(ElectronicBilling.BASE + "CreditNote.TryDetailed")
                     .description("Should the CreditNote include the detailed (if possible)")
                     .defaultValue(false);
+
+    @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute CREDITNOTE_CREATEUBL= new BooleanSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "CreditNote.CreateUBL")
+                    .description("Activate the creation of the UBL for CreditNote")
+                    .defaultValue(true);
 
     /** See description. */
     @EFapsSysConfAttribute
