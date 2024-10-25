@@ -366,10 +366,11 @@ public final class ElectronicBilling
     public static final PropertiesSysConfAttribute PREMISESCODE_BY_SERIAL = new PropertiesSysConfAttribute()
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
                     .key(ElectronicBilling.BASE + "PremisesCode.BySerial")
-                    .description("Mapping of Serial to Establecimiento\n"
-                                    + "Uses StartsWith as comparision.\n"
-                                    + "F001=14\n"
-                                    + "FC003=14");
+                    .description("""
+                        Mapping of Serial to Establecimiento
+                        Uses StartsWith as comparision.
+                        F001=14
+                        FC003=14""");
 
     @EFapsSysConfAttribute
     public static final PropertiesSysConfAttribute TAXMAPPING = new PropertiesSysConfAttribute()
@@ -379,7 +380,11 @@ public final class ElectronicBilling
                     .addDefaultValue("tax.06e40be6-40d8-44f4-9d8f-585f2f97ce63.id", "VAT")
                     .addDefaultValue("tax.06e40be6-40d8-44f4-9d8f-585f2f97ce63.nombre", "IGV")
                     .addDefaultValue("tax.06e40be6-40d8-44f4-9d8f-585f2f97ce63.sunat-id", "1000")
-                    .addDefaultValue("tax.06e40be6-40d8-44f4-9d8f-585f2f97ce63.afectacion-igv", "10");
+                    .addDefaultValue("tax.06e40be6-40d8-44f4-9d8f-585f2f97ce63.afectacion-igv", "10")
+                    .addDefaultValue("tax.e391b264-ad67-40f4-9e68-26556e28062f.id","FRE")
+                    .addDefaultValue("tax.e391b264-ad67-40f4-9e68-26556e28062f.sunat-id","9996")
+                    .addDefaultValue("tax.e391b264-ad67-40f4-9e68-26556e28062f.nombre","GRA")
+                    .addDefaultValue("tax.e391b264-ad67-40f4-9e68-26556e28062f.freeOfCharge","true");
 
     /** See description. */
     @EFapsSysConfAttribute
