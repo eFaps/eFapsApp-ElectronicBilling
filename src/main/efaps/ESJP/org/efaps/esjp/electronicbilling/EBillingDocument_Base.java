@@ -37,6 +37,7 @@ import org.efaps.db.PrintQuery;
 import org.efaps.db.QueryBuilder;
 import org.efaps.db.SelectBuilder;
 import org.efaps.db.Update;
+import org.efaps.db.stmt.selection.Evaluator;
 import org.efaps.eql.EQL;
 import org.efaps.esjp.ci.CIContacts;
 import org.efaps.esjp.ci.CIEBilling;
@@ -120,7 +121,9 @@ public abstract class EBillingDocument_Base
                         || InstanceUtils.isType(_docInst, CISales.Receipt) && ElectronicBilling.RECEIPT_ACTIVE.get()
                         || InstanceUtils.isType(_docInst, CISales.Reminder) && ElectronicBilling.REMINDER_ACTIVE.get()
                         || InstanceUtils.isType(_docInst, CISales.DeliveryNote)
-                                        && ElectronicBilling.DELIVERYNOTE_ACTIVE.get()) {
+                                        && ElectronicBilling.DELIVERYNOTE_ACTIVE.get()
+                        || InstanceUtils.isType(_docInst, CISales.RetentionCertificate)
+                                        && ElectronicBilling.RETENTIONCERTIFICATE_ACTIVE.get()) {
 
             final Properties docProps = ElectronicBilling.DOCMAPPING.get();
             final String typeName = _docInst.getType().getName();
@@ -130,9 +133,9 @@ public abstract class EBillingDocument_Base
                 final QueryBuilder queryBldr = new QueryBuilder(CIEBilling.DocumentAbstract);
                 queryBldr.addWhereAttrEqValue(CIEBilling.DocumentAbstract.DocumentLinkAbstract, _docInst);
                 if (queryBldr.getQuery().executeWithoutAccessCheck().isEmpty()) {
-                    final var eval = EQL.builder().print(_docInst).attribute(CISales.DocumentAbstract.Name).evaluate();
-                    final var name = eval.<String>get(CISales.DocumentAbstract.Name);
-                    final var regex = docProps.getProperty(typeName + ".NameRegexMatch", ".*");
+                    final Evaluator eval = EQL.builder().print(_docInst).attribute(CISales.DocumentAbstract.Name).evaluate();
+                    final String name = eval.<String>get(CISales.DocumentAbstract.Name);
+                    final String regex = docProps.getProperty(typeName + ".NameRegexMatch", ".*");
                     if (name.matches(regex)) {
                         final Type eType = isUUID(edoc) ? Type.get(UUID.fromString(edoc)) : Type.get(edoc);
                         final String eTypeName = eType.getName();
@@ -438,7 +441,7 @@ public abstract class EBillingDocument_Base
         throws EFapsException
     {
         String ret = null;
-        final var eval = EQL.builder().print().query(CIEBilling.DocumentAbstract)
+        final Evaluator eval = EQL.builder().print().query(CIEBilling.DocumentAbstract)
                         .where()
                         .attribute(CIEBilling.DocumentAbstract.DocumentLinkAbstract).eq(salesDocInst)
                         .select()

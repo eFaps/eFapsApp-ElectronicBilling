@@ -16,33 +16,25 @@
     limitations under the License.
 
 -->
-<ui-menu xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>4e72875c-0825-4f46-b885-ad4d4050d9d7</uuid>
+
+<ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
+    <uuid>7e4bda81-4520-4619-9b19-d996a92a408c</uuid>
     <file-application>eFapsApp-ElectronicBilling</file-application>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>EBilling_MyDesk</name>
+        <name>EBilling_RetentionCertificateMyDesk</name>
         <access>
             <role>EBilling_Admin</role>
         </access>
-        <childs>
-            <child>EBilling_DocumentMyDesk</child>
-            <child>EBilling_InvoiceMyDesk</child>
-            <child>EBilling_ReceiptMyDesk</child>
-            <child>EBilling_CreditNoteMyDesk</child>
-            <child>EBilling_DeliveryNoteMyDesk</child>
-            <child>EBilling_RetentionCertificateMyDesk</child>
-            <child>EBilling_SummaryMyDesk</child>
-            <child>EBilling_LogMyDesk</child>
-            <child>EBilling_KeystoreMyDesk</child>
-        </childs>
-        <parents>
-            <parent>Sales_MyDesk</parent>
-        </parents>
+        <target>
+            <table>EBilling_RetentionCertificateTable</table>
+            <evaluate program="org.efaps.esjp.common.uitable.MultiPrint">
+                <property name="Type">EBilling_RetentionCertificate</property>
+            </evaluate>
+        </target>
         <property name="Target">content</property>
         <property name="TargetShowCheckBoxes">true</property>
         <property name="TargetMode">view</property>
         <property name="TargetTableType">GridX</property>
     </definition>
-</ui-menu>
+</ui-command>

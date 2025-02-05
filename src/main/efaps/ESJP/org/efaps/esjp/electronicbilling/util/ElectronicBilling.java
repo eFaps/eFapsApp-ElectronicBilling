@@ -69,6 +69,10 @@ public final class ElectronicBilling
                     .addDefaultValue(CISales.Reminder.getType().getName(), CIEBilling.Reminder.getType().getName())
                     .addDefaultValue(CIEBilling.Reminder.getType().getName() + ".CreateStatus",
                                     CIEBilling.ReminderStatus.Pending.key)
+                    .addDefaultValue(CISales.RetentionCertificate.getType().getName(),
+                                    CIEBilling.RetentionCertificate.getType().getName())
+                    .addDefaultValue(CIEBilling.RetentionCertificate.getType().getName() + ".CreateStatus",
+                                    CIEBilling.RetentionCertificateStatus.Pending.key)
                     .addDefaultValue(CISales.DeliveryNote.getType().getName(),
                                     CIEBilling.DeliveryNote.getType().getName())
                     .addDefaultValue(CIEBilling.DeliveryNote.getType().getName() + ".CreateStatus",
@@ -414,6 +418,21 @@ public final class ElectronicBilling
                     .key(ElectronicBilling.BASE + "retention.Percentage")
                     .defaultValue("3")
                     .description("Is the Current Company \"Agente de Retencion\"");
+
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute RETENTIONCERTIFICATE_ACTIVE = new BooleanSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "RetentionCertificate.Activate")
+                    .description("Activate RetentionCertificate")
+                    .defaultValue(true);
+
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute RETENTIONCERTIFICATE_CREATEONSTATUS = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "RetentionCertificate.CreateOnStatusChange")
+                    .description("Activate the mechanism to create the electronic billing document on status change")
+                    .defaultValue(CISales.RetentionCertificateStatus.Open.key);
 
     @EFapsSysConfAttribute
     public static final StringSysConfAttribute KEYSTORE_ALIAS = new StringSysConfAttribute()

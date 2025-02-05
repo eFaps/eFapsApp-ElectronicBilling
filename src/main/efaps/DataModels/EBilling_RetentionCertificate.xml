@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--
+
+    Copyright © 2003 - 2024 The eFaps Team (-)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<datamodel-type xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
+    <uuid>c898895c-da52-4612-8e33-432c9270b443</uuid>
+    <file-application>eFapsApp-ElectronicBilling</file-application>
+    <definition>
+        <version-expression>(version==latest)</version-expression>
+        <name>EBilling_RetentionCertificate</name>
+        <parent>EBilling_DocumentAbstract</parent>
+        <attribute>
+            <name>RetentionCertificateLink</name>
+            <type>Link</type>
+            <typelink>Sales_RetentionCertificate</typelink>
+            <sqltable>EBilling_DocumentSQLTable</sqltable>
+            <sqlcolumn>DOCID</sqlcolumn>
+        </attribute>
+        <attribute>
+            <name>Status</name>
+            <type>Status</type>
+            <typelink>EBilling_RetentionCertificateStatus</typelink>
+            <sqltable>EBilling_DocumentSQLTable</sqltable>
+            <sqlcolumn>STATUS</sqlcolumn>
+            <trigger event="RANGE_VALUE" name="EBilling_RetentionCertificate.Status.RANGE_VALUE"
+                program="org.efaps.esjp.admin.datamodel.StatusValue">
+            </trigger>
+        </attribute>
+        <trigger event="DELETE_PRE" method="deletePreTrigger"
+                name="EBilling_RetentionCertificate.DELETE_PRE"
+                program="org.efaps.esjp.electronicbilling.EBillingDocument"/>
+    </definition>
+</datamodel-type>
