@@ -23,7 +23,7 @@
     <file-application>eFapsApp-ElectronicBilling</file-application>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>EBilling_Sales_RetentionCertificateTree_Menu_Action_CreateERetentionCertificate</name>
+        <name>EBilling_Sales_RetentionCertificateTree_Menu_Action_CreateRetentionCertificate</name>
         <access>
             <role>EBilling_Admin</role>
         </access>
