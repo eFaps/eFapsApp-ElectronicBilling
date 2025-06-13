@@ -27,7 +27,7 @@
     </parent>
     <packaging>jar</packaging>
     <groupId>org.efaps.apps</groupId>
-    <artifactId>electronicbilling</artifactId>
+    <artifactId>efaps-app-electronicbilling</artifactId>
     <name>eFaps Electronic Billing Application</name>
     <description>
     </description>
