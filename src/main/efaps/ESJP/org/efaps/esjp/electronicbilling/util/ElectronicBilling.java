@@ -468,12 +468,6 @@ public final class ElectronicBilling
                     .defaultValue(false);
 
     @EFapsSysConfAttribute
-    public static final StringSysConfAttribute UBL_RESPONSE_FILETYPE = new StringSysConfAttribute()
-                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
-                    .key(ElectronicBilling.BASE + "ubl.ResponseFileType")
-                    .description("ResponseFileType");
-
-    @EFapsSysConfAttribute
     public static final StringSysConfAttribute UBL_ENCODING = new StringSysConfAttribute()
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
                     .key(ElectronicBilling.BASE + "ubl.Encoding")

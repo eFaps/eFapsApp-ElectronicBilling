@@ -35,12 +35,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.efaps.admin.datamodel.Dimension;
 import org.efaps.admin.datamodel.Dimension.UoM;
 import org.efaps.admin.datamodel.Status;
-import org.efaps.admin.datamodel.Type;
 import org.efaps.admin.event.Parameter;
 import org.efaps.admin.event.Return;
 import org.efaps.admin.event.Return.ReturnValues;
@@ -103,7 +101,6 @@ import org.efaps.ubl.documents.values.DeliveryNoteInstruction;
 import org.efaps.ubl.dto.SignResponseDto;
 import org.efaps.ubl.reader.ApplicationResponseReader;
 import org.efaps.util.EFapsException;
-import org.efaps.util.UUIDUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -122,26 +119,17 @@ public abstract class UBLService_Base
                                            final File file)
         throws EFapsException
     {
-        final var fileTypeStr = ElectronicBilling.UBL_RESPONSE_FILETYPE.get();
-        if (StringUtils.isNotEmpty(fileTypeStr)) {
-            Type fileType;
-            if (UUIDUtil.isUUID(fileTypeStr)) {
-                fileType = Type.get(UUID.fromString(fileTypeStr));
-            } else {
-                fileType = Type.get(fileTypeStr);
-            }
-            final var fileInst = EQL.builder()
-                            .insert(fileType)
-                            .set(CIEBilling.ResponseFileAbstract.DocumentLinkAbstract, eDocInst)
-                            .stmt()
-                            .execute();
-            try {
-                final var is = new FileInputStream(file);
-                final var checkin = new Checkin(fileInst);
-                checkin.execute(file.getName(), is, is.available());
-            } catch (final IOException e) {
-                LOG.error("Catched", e);
-            }
+        final var fileInst = EQL.builder()
+                        .insert(getUBLResponseFileType())
+                        .set(CIEBilling.ResponseFileAbstract.DocumentLinkAbstract, eDocInst)
+                        .stmt()
+                        .execute();
+        try {
+            final var is = new FileInputStream(file);
+            final var checkin = new Checkin(fileInst);
+            checkin.execute(file.getName(), is, is.available());
+        } catch (final IOException e) {
+            LOG.error("Catched", e);
         }
     }
 
@@ -180,7 +168,7 @@ public abstract class UBLService_Base
             EQL.builder()
                             .insert(logType)
                             .set(CIEBilling.LogAbstract.DocumentLinkAbstract, eDocInst)
-                            .set(CIEBilling.LogAbstract.Content, content)
+                            .set(CIEBilling.LogAbstract.Content, content.toString())
                             .stmt()
                             .execute();
         }
@@ -240,6 +228,11 @@ public abstract class UBLService_Base
     protected CIType getUBLFileType()
     {
         return CIEBilling.UBLFile;
+    }
+
+    protected CIType getUBLResponseFileType()
+    {
+        return CIEBilling.ResponseFile;
     }
 
     public ImmutablePair<String, File> createReceipt(final Instance docInstance)
