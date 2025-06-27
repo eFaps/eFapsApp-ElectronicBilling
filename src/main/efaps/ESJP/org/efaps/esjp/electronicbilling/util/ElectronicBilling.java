@@ -483,6 +483,47 @@ public final class ElectronicBilling
                     .description("Configuration for export SaleRecord\n"
                                 + "Regex4UnnamedClient:  Case insensitive Regex to mark client as 'Cliente various'");
 
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute RECORDMGTM_SSO_ENDPOINTURI = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "RecordManagement.sso.EndpointURI")
+                    .defaultValue("https://sso.synercom.pe/auth/realms/SynerCOM/protocol/openid-connect/token")
+                    .description("URI of the RecordManagement SSO.");
+
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute RECORDMGTM_SSO_CLIENTID = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "RecordManagement.sso.ClientId")
+                    .defaultValue("MISSING CONFIG")
+                    .description("Fiscus RecordManagement CLientId");
+
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute RECORDMGTM_SSO_CLIENTSECRET = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "RecordManagement.sso.ClientSecret")
+                    .defaultValue("MISSING CONFIG")
+                    .description("Fiscus RecordManagement CLientId");
+
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute RECORDMGTM_SSO_USERNAME = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "RecordManagement.sso.UserName")
+                    .defaultValue("MISSING CONFIG")
+                    .description("Fiscus RecordManagement CLientId");
+
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute RECORDMGTM_SSO_PWD = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "RecordManagement.sso.Password")
+                    .defaultValue("MISSING CONFIG")
+                    .description("Fiscus RecordManagement CLientId");
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute RECORDMGTM_ENDPOINTURI = new StringSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "RecordManagement.EndpointURI")
+                    .defaultValue("https://record-management.synercom.pe/api/service/records")
+                    .description("URI of RecordManagement.");
+
     /**
      * @return the SystemConfigruation for Sales
      * @throws CacheReloadException on error
