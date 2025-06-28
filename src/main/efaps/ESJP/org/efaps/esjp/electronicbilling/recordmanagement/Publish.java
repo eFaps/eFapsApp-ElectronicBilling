@@ -20,10 +20,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigDecimal;
 import java.net.URI;
+import java.time.LocalDate;
 
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.io.IOUtils;
@@ -33,12 +34,15 @@ import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
 import org.efaps.db.Checkout;
 import org.efaps.db.Instance;
+import org.efaps.eql.EQL;
 import org.efaps.esjp.ci.CIEBilling;
+import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.common.file.FileUtil;
 import org.efaps.esjp.db.InstanceUtils;
 import org.efaps.esjp.electronicbilling.fiscus.client.rest.AbstractRestClient;
 import org.efaps.esjp.electronicbilling.util.ElectronicBilling;
 import org.efaps.esjp.erp.rest.client.OAuth2Client;
+import org.efaps.esjp.erp.util.ERP;
 import org.efaps.util.EFapsException;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
@@ -56,14 +60,50 @@ public class Publish
     public Return publishDocument(final Parameter parameter)
         throws EFapsException
     {
-        publishUbl("107958.468");
+        publishDocument(Instance.get("49394.467"));
         return new Return();
     }
 
-    public void publishUbl(final String oid)
+    public void publishDocument(final Instance edocInst)
         throws EFapsException
     {
-        final var ublInst = Instance.get(oid);
+        final var eval = EQL.builder().print()
+                        .query(CIEBilling.UBLFileAbstract)
+                        .where()
+                        .attribute(CIEBilling.UBLFileAbstract.DocumentLinkAbstract).eq(edocInst)
+                        .select()
+                        .attribute(CIEBilling.UBLFileAbstract.Created)
+                        .orderBy(CIEBilling.UBLFileAbstract.Created, true)
+                        .evaluate();
+        if (eval.next()) {
+            final var docEval = EQL.builder().print(edocInst)
+                            .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
+                            .attribute(CISales.DocumentSumAbstract.Name)
+                            .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
+                            .attribute(CISales.DocumentSumAbstract.RateCrossTotal)
+                            .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
+                            .attribute(CISales.DocumentSumAbstract.Date)
+                            .evaluate();
+            if (docEval.next()) {
+                final var ublInst = eval.inst();
+                final var id = publishUbl(docEval.get(CISales.DocumentSumAbstract.Name),
+                                docEval.get(CISales.DocumentSumAbstract.Date),
+                                docEval.get(CISales.DocumentSumAbstract.RateCrossTotal),
+                                ublInst);
+                if (id != null) {
+                    EQL.builder().update(ublInst).set(CIEBilling.UBLFileAbstract.UBLHash, id).execute();
+                }
+            }
+        }
+    }
+
+    public String publishUbl(final String name,
+                           final LocalDate date,
+                           final BigDecimal total,
+                           final Instance ublInst)
+        throws EFapsException
+    {
+        String ret = null;
         if (InstanceUtils.isKindOf(ublInst, CIEBilling.UBLFileAbstract)) {
             final var ssoClient = OAuth2Client.builder()
                             .withTarget(URI.create(ElectronicBilling.RECORDMGTM_SSO_ENDPOINTURI.get()))
@@ -90,25 +130,24 @@ public class Publish
 
                 final var filePart = new FileDataBodyPart("ubl", temp);
 
-                final var multipart = new FormDataMultiPart()
-                                .field("clientId", "11111111111")
-                                .field("name", "F191-000000815")
-                                .field("date", "2025-07-27")
-                                .field("total", "10.99")
-                                .bodyPart(filePart);
-
-                final var response = request.buildPost(Entity.entity(multipart, multipart.getMediaType()))
-                                .invoke(new GenericType<>()
-                                {
-                                });
-                LOG.info("{}", response);
+                try (var multipart = new FormDataMultiPart()
+                                .field("clientId", ERP.COMPANY_TAX.get())
+                                .field("name", name)
+                                .field("date", date.toString())
+                                .field("total", total.toString())
+                                .bodyPart(filePart)) {
+                    final var response = request.buildPost(Entity.entity(multipart, multipart.getMediaType()))
+                                    .invoke(PublishResponseDto.class);
+                    LOG.info("{}", response);
+                    ret = response.getId();
+                }
             } catch (EFapsException | IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                LOG.error("Catched", e);
             }
 
         } else {
-            LOG.warn("Invalid oid: {}", oid);
+            LOG.warn("Invalid instance: {}", ublInst);
         }
+        return ret;
     }
 }
