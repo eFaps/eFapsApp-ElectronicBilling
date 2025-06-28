@@ -30,7 +30,9 @@ import org.efaps.eql.EQL;
 import org.efaps.esjp.ci.CIEBilling;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.db.InstanceUtils;
+import org.efaps.esjp.electronicbilling.FiscusMapper;
 import org.efaps.esjp.electronicbilling.rest.dto.EInvoiceDto;
+import org.efaps.esjp.erp.util.ERP;
 import org.efaps.util.EFapsException;
 
 @EFapsUUID("c6c73fba-d527-408c-a315-b46203cf4d0e")
@@ -38,10 +40,10 @@ import org.efaps.util.EFapsException;
 public abstract class AbstractUBLController_Base
 {
 
-    public Response addEInvoice(final EInvoiceDto _einvoice)
+    public Response addEInvoice(final EInvoiceDto einvoice)
         throws EFapsException
     {
-        final var docInst = Instance.get(_einvoice.getDocOid());
+        final var docInst = Instance.get(einvoice.getDocOid());
         Instance eDocInst = null;
         if (CISales.Invoice.isType(docInst.getType())) {
             final var statusKey = getUploadStatusKey(CIEBilling.Invoice);
@@ -67,15 +69,25 @@ public abstract class AbstractUBLController_Base
                             .execute();
         }
         if (InstanceUtils.isValid(eDocInst)) {
+            String name = "NAME";
+            final var eval = EQL.builder().print(docInst).attribute(CISales.DocumentSumAbstract.Name).evaluate();
+            while (eval.next()) {
+                name = eval.get(CISales.DocumentSumAbstract.Name);
+            }
+
+            final var docType = FiscusMapper.getDocumentType4Document(docInst);
+
+            final String fileName = ERP.COMPANY_TAX.get() + "-" + docType + "-" + name + ".xml";
+
             final var fileInst = EQL.builder()
                             .insert(getUBLFileType())
-                            .set(CIEBilling.UBLFileAbstract.DocumentLinkAbstract, eDocInst)
+                            .set(CIEBilling.UBLFileAbstract.DocumentLinkAbstract, docInst)
                             .stmt()
                             .execute();
 
-            final var is = new ByteArrayInputStream(_einvoice.getUbl().getBytes(StandardCharsets.UTF_8));
+            final var is = new ByteArrayInputStream(einvoice.getUbl().getBytes(StandardCharsets.UTF_8));
             final var checkin = new Checkin(fileInst);
-            checkin.execute("EInvoice.xml", is, is.available());
+            checkin.execute(fileName, is, is.available());
         }
 
         final Response ret = Response.ok()

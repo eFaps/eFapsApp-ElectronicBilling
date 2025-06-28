@@ -144,7 +144,6 @@ public class Publish
             } catch (EFapsException | IOException e) {
                 LOG.error("Catched", e);
             }
-
         } else {
             LOG.warn("Invalid instance: {}", ublInst);
         }

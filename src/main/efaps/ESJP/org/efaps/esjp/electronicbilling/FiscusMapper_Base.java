@@ -220,7 +220,9 @@ public abstract class FiscusMapper_Base
      * @throws EFapsException on error
      *
      */
-    protected String getOperationType(final Parameter _parameter, final Instance _docInst, final Instance _contactInst)
+    protected String getOperationType(final Parameter _parameter,
+                                      final Instance _docInst,
+                                      final Instance _contactInst)
         throws EFapsException
     {
         String ret = null;
@@ -306,7 +308,8 @@ public abstract class FiscusMapper_Base
      * @return key
      * @throws EFapsException
      */
-    protected String evalTaxAffectation4TaxFree(final Parameter _parameter, final Instance _contactInst)
+    protected String evalTaxAffectation4TaxFree(final Parameter _parameter,
+                                                final Instance _contactInst)
         throws EFapsException
     {
         String ret;
@@ -371,7 +374,8 @@ public abstract class FiscusMapper_Base
      * @return
      * @throws EFapsException
      */
-    protected String[] evalTaxCode4TaxFree(final Parameter _parameter, final Instance _contactInst)
+    protected String[] evalTaxCode4TaxFree(final Parameter _parameter,
+                                           final Instance _contactInst)
         throws EFapsException
     {
         String[] ret;
@@ -397,24 +401,8 @@ public abstract class FiscusMapper_Base
         return "11";
     }
 
-    protected String getDocumentType4Document(final Instance _docInst)
-    {
-        String ret;
-        if (_docInst.getType().isCIType(CISales.Invoice)) {
-            ret = "01";
-        } else if (_docInst.getType().isCIType(CISales.Receipt)) {
-            ret = "03";
-        } else if (_docInst.getType().isCIType(CISales.CreditNote)) {
-            ret = "07";
-        } else if (_docInst.getType().isCIType(CISales.Reminder)) {
-            ret = "08";
-        } else {
-            ret = "UNKOWN";
-        }
-        return ret;
-    }
-
-    protected String evalPremisesCode(final Parameter _parameter, final Instance _docInst)
+    protected String evalPremisesCode(final Parameter _parameter,
+                                      final Instance _docInst)
         throws EFapsException
     {
         String ret = null;
@@ -434,13 +422,15 @@ public abstract class FiscusMapper_Base
         return StringUtils.isEmpty(ret) ? ERP.COMPANY_ESTABLECIMIENTO.get() : ret;
     }
 
-    protected String getTaxProperty(final Tax _tax, final String _key)
+    protected String getTaxProperty(final Tax _tax,
+                                    final String _key)
         throws EFapsException
     {
         return getTaxProperty(_tax.getUUID(), _key);
     }
 
-    protected String getTaxProperty(final UUID uuid, final String _key)
+    protected String getTaxProperty(final UUID uuid,
+                                    final String _key)
         throws EFapsException
     {
         return ElectronicBilling.TAXMAPPING.get().getProperty("tax." + uuid.toString() + "." + _key);
@@ -549,4 +539,24 @@ public abstract class FiscusMapper_Base
         return ret;
     }
 
+    public static String getDocumentType4Document(final Instance docInst)
+    {
+        String ret;
+        if (docInst.getType().isCIType(CISales.Invoice)) {
+            ret = "01";
+        } else if (docInst.getType().isCIType(CISales.Receipt)) {
+            ret = "03";
+        } else if (docInst.getType().isCIType(CISales.CreditNote)) {
+            ret = "07";
+        } else if (docInst.getType().isCIType(CISales.Reminder)) {
+            ret = "08";
+        } else if (docInst.getType().isCIType(CISales.DeliveryNote)) {
+            ret = "09";
+        } else if (docInst.getType().isCIType(CISales.RetentionCertificate)) {
+            ret = "20";
+        } else {
+            ret = "UNKOWN";
+        }
+        return ret;
+    }
 }
