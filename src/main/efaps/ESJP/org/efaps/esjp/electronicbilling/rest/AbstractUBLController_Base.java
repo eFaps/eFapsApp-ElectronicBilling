@@ -81,7 +81,7 @@ public abstract class AbstractUBLController_Base
 
             final var fileInst = EQL.builder()
                             .insert(getUBLFileType())
-                            .set(CIEBilling.UBLFileAbstract.DocumentLinkAbstract, docInst)
+                            .set(CIEBilling.UBLFileAbstract.DocumentLinkAbstract, eDocInst)
                             .stmt()
                             .execute();
 
