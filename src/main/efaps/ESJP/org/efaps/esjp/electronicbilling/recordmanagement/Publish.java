@@ -35,6 +35,7 @@ import org.efaps.admin.program.esjp.EFapsUUID;
 import org.efaps.db.Checkout;
 import org.efaps.db.Instance;
 import org.efaps.eql.EQL;
+import org.efaps.eql.builder.Selectables;
 import org.efaps.esjp.ci.CIEBilling;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.common.file.FileUtil;
@@ -57,11 +58,55 @@ public class Publish
 
     private static final Logger LOG = LoggerFactory.getLogger(Publish.class);
 
+    private OAuth2Client ssoClient;
+
     public Return publishDocument(final Parameter parameter)
         throws EFapsException
     {
         publishDocument(Instance.get("49394.467"));
         return new Return();
+    }
+
+    public Return scan4Documents(final Parameter parameter)
+        throws EFapsException
+    {
+        scan4Documents();
+        return new Return();
+    }
+
+    public void scan4Documents()
+        throws EFapsException
+    {
+
+        final var eval = EQL.builder().print()
+                        .query(CIEBilling.Invoice, CIEBilling.Receipt)
+                        .where()
+                        .attribute(CIEBilling.DocumentAbstract.ID).in(
+                                        EQL.builder().nestedQuery(CIEBilling.UBLFileAbstract)
+                                                        .where()
+                                                        .attribute(CIEBilling.UBLFileAbstract.Created)
+                                                        .greater("2025-06-30")
+                                                        .and()
+                                                        .attribute(CIEBilling.UBLFileAbstract.UBLHash).isNull()
+                                                        .up()
+                                                        .selectable(Selectables.attribute(
+                                                                        CIEBilling.UBLFileAbstract.DocumentLinkAbstract)))
+                        .and()
+                        .attribute(CIEBilling.DocumentAbstract.ID).notin(
+                                        EQL.builder().nestedQuery(CIEBilling.UBLFileAbstract)
+                                                        .where()
+                                                        .attribute(CIEBilling.UBLFileAbstract.UBLHash).notIsNull()
+                                                        .up()
+                                                        .selectable(Selectables.attribute(
+                                                                        CIEBilling.UBLFileAbstract.DocumentLinkAbstract)))
+                        .select()
+                        .id()
+                        .evaluate();
+
+        while (eval.next()) {
+            final var edocInst = eval.inst();
+            publishDocument(edocInst);
+        }
     }
 
     public void publishDocument(final Instance edocInst)
@@ -98,21 +143,14 @@ public class Publish
     }
 
     public String publishUbl(final String name,
-                           final LocalDate date,
-                           final BigDecimal total,
-                           final Instance ublInst)
+                             final LocalDate date,
+                             final BigDecimal total,
+                             final Instance ublInst)
         throws EFapsException
     {
         String ret = null;
         if (InstanceUtils.isKindOf(ublInst, CIEBilling.UBLFileAbstract)) {
-            final var ssoClient = OAuth2Client.builder()
-                            .withTarget(URI.create(ElectronicBilling.RECORDMGTM_SSO_ENDPOINTURI.get()))
-                            .withClientId(ElectronicBilling.RECORDMGTM_SSO_CLIENTID.get())
-                            .withClientSecret(ElectronicBilling.RECORDMGTM_SSO_CLIENTSECRET.get())
-                            .withUsername(ElectronicBilling.RECORDMGTM_SSO_USERNAME.get())
-                            .withPassword(ElectronicBilling.RECORDMGTM_SSO_PWD.get())
-                            .build();
-            final var token = ssoClient.getToken();
+            final var token = getOAuth2Client().getToken();
 
             final var request = getClient().target(ElectronicBilling.RECORDMGTM_ENDPOINTURI.get())
                             .request(MediaType.APPLICATION_JSON)
@@ -148,5 +186,20 @@ public class Publish
             LOG.warn("Invalid instance: {}", ublInst);
         }
         return ret;
+    }
+
+    protected OAuth2Client getOAuth2Client()
+        throws EFapsException
+    {
+        if (ssoClient == null) {
+            ssoClient = OAuth2Client.builder()
+                            .withTarget(URI.create(ElectronicBilling.RECORDMGTM_SSO_ENDPOINTURI.get()))
+                            .withClientId(ElectronicBilling.RECORDMGTM_SSO_CLIENTID.get())
+                            .withClientSecret(ElectronicBilling.RECORDMGTM_SSO_CLIENTSECRET.get())
+                            .withUsername(ElectronicBilling.RECORDMGTM_SSO_USERNAME.get())
+                            .withPassword(ElectronicBilling.RECORDMGTM_SSO_PWD.get())
+                            .build();
+        }
+        return ssoClient;
     }
 }
