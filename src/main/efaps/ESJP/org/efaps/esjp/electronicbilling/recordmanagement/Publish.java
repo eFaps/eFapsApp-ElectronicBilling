@@ -40,6 +40,7 @@ import org.efaps.esjp.ci.CIEBilling;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.common.file.FileUtil;
 import org.efaps.esjp.db.InstanceUtils;
+import org.efaps.esjp.electronicbilling.FiscusMapper;
 import org.efaps.esjp.electronicbilling.fiscus.client.rest.AbstractRestClient;
 import org.efaps.esjp.electronicbilling.util.ElectronicBilling;
 import org.efaps.esjp.erp.rest.client.OAuth2Client;
@@ -79,7 +80,7 @@ public class Publish
     {
 
         final var eval = EQL.builder().print()
-                        .query(CIEBilling.Invoice, CIEBilling.Receipt)
+                        .query(CIEBilling.Invoice, CIEBilling.Receipt, CIEBilling.CreditNote)
                         .where()
                         .attribute(CIEBilling.DocumentAbstract.ID).in(
                                         EQL.builder().nestedQuery(CIEBilling.UBLFileAbstract)
@@ -122,6 +123,7 @@ public class Publish
                         .evaluate();
         if (eval.next()) {
             final var docEval = EQL.builder().print(edocInst)
+                            .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract).instance().as("docInst")
                             .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
                             .attribute(CISales.DocumentSumAbstract.Name)
                             .linkto(CIEBilling.DocumentAbstract.DocumentLinkAbstract)
@@ -130,8 +132,10 @@ public class Publish
                             .attribute(CISales.DocumentSumAbstract.Date)
                             .evaluate();
             if (docEval.next()) {
+                final var docType = FiscusMapper.getDocumentType4Document(docEval.get("docInst"));
                 final var ublInst = eval.inst();
-                final var id = publishUbl(docEval.get(CISales.DocumentSumAbstract.Name),
+                final var id = publishUbl(docType,
+                                docEval.get(CISales.DocumentSumAbstract.Name),
                                 docEval.get(CISales.DocumentSumAbstract.Date),
                                 docEval.get(CISales.DocumentSumAbstract.RateCrossTotal),
                                 ublInst);
@@ -142,7 +146,8 @@ public class Publish
         }
     }
 
-    public String publishUbl(final String name,
+    public String publishUbl(final String docType,
+                             final String number,
                              final LocalDate date,
                              final BigDecimal total,
                              final Instance ublInst)
@@ -170,7 +175,8 @@ public class Publish
 
                 try (var multipart = new FormDataMultiPart()
                                 .field("clientId", ERP.COMPANY_TAX.get())
-                                .field("name", name)
+                                .field("docType", docType)
+                                .field("number", number)
                                 .field("date", date.toString())
                                 .field("total", total.toString())
                                 .bodyPart(filePart)) {
