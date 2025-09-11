@@ -26,6 +26,16 @@
         <access>
             <role>EBilling_Admin</role>
         </access>
+        <target>
+         <trigger
+                name="EBilling_MyDesk.UI_ACCESSCHECK"
+                event="UI_ACCESSCHECK"
+                program="org.efaps.esjp.admin.access.AccessCheck4UI"
+                method="configCheck">
+                <property name="SystemConfig">451e21b9-27ff-4378-adfa-a578a9ba0b51</property>
+                <property name="Attribute">org.efaps.electronicbilling.Activate</property>
+            </trigger>
+        </target>
         <childs>
             <child>EBilling_DocumentMyDesk</child>
             <child>EBilling_InvoiceMyDesk</child>

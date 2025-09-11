@@ -53,6 +53,13 @@ public final class ElectronicBilling
 
     /** See description. */
     @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute ACTIVATE = new BooleanSysConfAttribute()
+                    .sysConfUUID(SYSCONFUUID)
+                    .key(BASE + "Activate")
+                    .description("Main switch to activate/deactivate ElectronicBilling.");
+
+    /** See description. */
+    @EFapsSysConfAttribute
     public static final PropertiesSysConfAttribute DOCMAPPING = new PropertiesSysConfAttribute()
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
                     .key(ElectronicBilling.BASE + "DocumentMapping")
@@ -442,6 +449,14 @@ public final class ElectronicBilling
                     .description("Activate the mechanism to create the electronic billing document on status change")
                     .defaultValue(CISales.RetentionCertificateStatus.Open.key);
 
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute KEYSTOR_ACTIVE = new BooleanSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Keystore.Activate")
+                    .description("Activate Keystore")
+                    .defaultValue(false);
+
     @EFapsSysConfAttribute
     public static final StringSysConfAttribute KEYSTORE_ALIAS = new StringSysConfAttribute()
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
@@ -469,8 +484,7 @@ public final class ElectronicBilling
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
                     .key(ElectronicBilling.BASE + "Summary.Activate")
                     .description("Activate Reminder")
-                    .defaultValue(true);
-
+                    .defaultValue(false);
 
     @EFapsSysConfAttribute
     public static final StringSysConfAttribute SUMMARY_SEQ = new StringSysConfAttribute()
