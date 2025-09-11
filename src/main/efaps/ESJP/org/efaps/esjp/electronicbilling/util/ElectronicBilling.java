@@ -366,6 +366,14 @@ public final class ElectronicBilling
                     .key(ElectronicBilling.BASE + "CreditNote.Verification")
                     .description("Properties that permit to define when an Electronic CreditNote should be aborted.");
 
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute RETCERT_ACTIVE = new BooleanSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "RetentionCertificate.Activate")
+                    .description("Activate RetentionCertificate")
+                    .defaultValue(true);
+
     @EFapsSysConfAttribute
     public static final PropertiesSysConfAttribute PREMISESCODE_BY_SERIAL = new PropertiesSysConfAttribute()
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
@@ -454,6 +462,15 @@ public final class ElectronicBilling
                     .sysConfUUID(ElectronicBilling.SYSCONFUUID)
                     .key(ElectronicBilling.BASE + "KeyStore")
                     .description("Keystore containing the cert to sign the UBL");
+
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute SUMMARY_ACTIVE = new BooleanSysConfAttribute()
+                    .sysConfUUID(ElectronicBilling.SYSCONFUUID)
+                    .key(ElectronicBilling.BASE + "Summary.Activate")
+                    .description("Activate Reminder")
+                    .defaultValue(true);
+
 
     @EFapsSysConfAttribute
     public static final StringSysConfAttribute SUMMARY_SEQ = new StringSysConfAttribute()

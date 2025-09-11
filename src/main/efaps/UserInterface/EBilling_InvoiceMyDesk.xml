@@ -31,6 +31,14 @@
             <evaluate program="org.efaps.esjp.common.uitable.MultiPrint">
                 <property name="Type">EBilling_Invoice</property>
             </evaluate>
+             <trigger
+                name="EBilling_InvoiceMyDesk.UI_ACCESSCHECK"
+                event="UI_ACCESSCHECK"
+                program="org.efaps.esjp.admin.access.AccessCheck4UI"
+                method="configCheck">
+                <property name="SystemConfig">451e21b9-27ff-4378-adfa-a578a9ba0b51</property>
+                <property name="Attribute">org.efaps.electronicbilling.Invoice.Activate</property>
+            </trigger>
         </target>
         <property name="Target">content</property>
         <property name="TargetShowCheckBoxes">true</property>
