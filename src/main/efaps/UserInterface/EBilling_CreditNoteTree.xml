@@ -34,6 +34,7 @@
         <childs>
             <child>EBilling_DocumentAbstractTree_Log</child>
             <child>EBilling_DocumentAbstractTree_File</child>
+            <child>Common_History_ObjectTree_StatusLog</child>
         </childs>
         <property name="Target">content</property>
         <property name="TargetMode">view</property>
