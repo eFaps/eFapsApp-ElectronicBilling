@@ -99,7 +99,7 @@ import org.efaps.ubl.documents.interfaces.ITaxEntry;
 import org.efaps.ubl.documents.values.CreditNoteTypeCode;
 import org.efaps.ubl.documents.values.DeliveryNoteInstruction;
 import org.efaps.ubl.dto.SignResponseDto;
-import org.efaps.ubl.reader.ApplicationResponseReader;
+import org.efaps.ubl.marshaller.DocumentMarshaller;
 import org.efaps.util.EFapsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -138,8 +138,8 @@ public abstract class UBLService_Base
                                         final CIType logType)
         throws EFapsException
     {
-        final var reader = new ApplicationResponseReader();
-        final var appResponse = reader.read(file);
+        final var marshaller = DocumentMarshaller.applicationResponse();
+        final var appResponse = marshaller.read(file);
         final var response = appResponse.getDocumentResponseAtIndex(0).getResponse();
         final var responseCode = response.getResponseCodeValue();
 
