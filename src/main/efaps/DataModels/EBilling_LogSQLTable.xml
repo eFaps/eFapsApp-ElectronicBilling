@@ -38,6 +38,7 @@
             <foreign name="T_EBILLLOG_FK_COMPANYID"   key="COMPANYID" reference="T_USERABSTRACT(ID)" />
             <foreign name="T_EBILLLOG_FK_CRTR"        key="CREATOR"   reference="T_USERPERSON(ID)" />
             <foreign name="T_EBILLLOG_FK_MDFR"        key="MODIFIER"  reference="T_USERPERSON(ID)" />
+            <index  name="T_EBILLLOG_INDEX_DOCIDTYPEID" columns="DOCID,COMPANYID,TYPEID"/>
         </database>
     </definition>
 </datamodel-sqltable>
