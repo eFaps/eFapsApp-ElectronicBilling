@@ -100,6 +100,18 @@ public class Publish
                                                         .up()
                                                         .selectable(Selectables.attribute(
                                                                         CIEBilling.UBLFileAbstract.DocumentLinkAbstract)))
+
+                        .and()
+                        .attribute(CIEBilling.DocumentAbstract.StatusAbstract).in(
+                                        CIEBilling.InvoiceStatus.Issued,
+                                        CIEBilling.InvoiceStatus.Pending,
+                                        CIEBilling.InvoiceStatus.Successful,
+                                        CIEBilling.ReceiptStatus.Issued,
+                                        CIEBilling.ReceiptStatus.Pending,
+                                        CIEBilling.ReceiptStatus.Successful,
+                                        CIEBilling.CreditNoteStatus.Issued,
+                                        CIEBilling.CreditNoteStatus.Pending,
+                                        CIEBilling.CreditNoteStatus.Successful)
                         .select()
                         .id()
                         .evaluate();
@@ -113,6 +125,7 @@ public class Publish
     public void publishDocument(final Instance edocInst)
         throws EFapsException
     {
+        LOG.debug("publisch electronic document: {}", edocInst);
         final var eval = EQL.builder().print()
                         .query(CIEBilling.UBLFileAbstract)
                         .where()
@@ -173,7 +186,8 @@ public class Publish
 
                 final var filePart = new FileDataBodyPart("ubl", temp);
 
-                try (var multipart = new FormDataMultiPart()
+                try (@SuppressWarnings("resource")
+                var multipart = new FormDataMultiPart()
                                 .field("clientId", ERP.COMPANY_TAX.get())
                                 .field("docType", docType)
                                 .field("number", number)
