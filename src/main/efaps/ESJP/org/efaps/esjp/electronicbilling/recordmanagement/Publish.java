@@ -178,26 +178,31 @@ public class Publish
                 final var checkout = new Checkout(ublInst);
 
                 final InputStream input = checkout.execute();
-                final File temp = new FileUtil().getFile(checkout.getFileName());
-                final OutputStream out = new FileOutputStream(temp);
-                IOUtils.copy(input, out);
-                input.close();
-                out.close();
+                if (checkout.getFileName() == null) {
+                    LOG.warn("no document for {}", ublInst);
+                } else {
 
-                final var filePart = new FileDataBodyPart("ubl", temp);
+                    final File temp = new FileUtil().getFile(checkout.getFileName());
+                    final OutputStream out = new FileOutputStream(temp);
+                    IOUtils.copy(input, out);
+                    input.close();
+                    out.close();
 
-                try (@SuppressWarnings("resource")
-                var multipart = new FormDataMultiPart()
-                                .field("clientId", ERP.COMPANY_TAX.get())
-                                .field("docType", docType)
-                                .field("number", number)
-                                .field("date", date.toString())
-                                .field("total", total.toString())
-                                .bodyPart(filePart)) {
-                    final var response = request.buildPost(Entity.entity(multipart, multipart.getMediaType()))
-                                    .invoke(PublishResponseDto.class);
-                    LOG.info("{}", response);
-                    ret = response.getId();
+                    final var filePart = new FileDataBodyPart("ubl", temp);
+
+                    try (@SuppressWarnings("resource")
+                        var multipart = new FormDataMultiPart()
+                                    .field("clientId", ERP.COMPANY_TAX.get())
+                                    .field("docType", docType)
+                                    .field("number", number)
+                                    .field("date", date.toString())
+                                    .field("total", total.toString())
+                                    .bodyPart(filePart)) {
+                        final var response = request.buildPost(Entity.entity(multipart, multipart.getMediaType()))
+                                        .invoke(PublishResponseDto.class);
+                        LOG.info("{}", response);
+                        ret = response.getId();
+                    }
                 }
             } catch (EFapsException | IOException e) {
                 LOG.error("Catched", e);
